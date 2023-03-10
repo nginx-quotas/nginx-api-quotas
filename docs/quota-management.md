@@ -42,7 +42,7 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
   - Install a QMS
   - Create a QMS cluster
   - Set up a QMS cluster
-    
+
 - Create a quota policy in ACM:
 
   **Data Structure for `quotas`:**
@@ -74,11 +74,11 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 
   - Data Structure for `users_quotas`
 
-    | User(sub) | Policy  | Remaining | Enable  |
-    |-----------|---------|-----------|---------|
-    | sub-1     | quota-1 |   45,000  | `true`  |
-    | sub-2     | quota-1 |   25,000  | `true`  |
-    | sub-3     | quota-3 |    5,000  | `false` |
+    | User(sub) | PolicyID | Remaining | Enable  |
+    |-----------|----------|-----------|---------|
+    | sub-1     | quota-1  |   45,000  | `true`  |
+    | sub-2     | quota-1  |   25,000  | `true`  |
+    | sub-3     | quota-3  |    5,000  | `false` |
 
 - Headers related to limits can be sent back to client
 
@@ -100,6 +100,54 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 
 ## Capacity Estimation
 
+- Quota Meta: 92 byte per policy
+
+  | Category       | Name    | Type    | Quota     | Limit By | Zone Size | Throttle  |
+  |----------------|---------|---------|-----------|----------|-----------|-----------|
+  | Example        | quota-1 | global  | 50,000/M  | `user`   | 50M       | `strict`  |
+  | Size(92 byte)  | 64 byte | 4 byte  | 8 byte    | 4 byte   | 8 byte    | 4 byte    |
+
+  > Note: 
+  > 
+  > Maximum # of quotas: 1000
+  > Max quota table size: 1000 * 92 byte = 92KB
+
+- User Quota: 137 byte per user
+
+  | Category       | User(sub) | Policy  | Remaining | Enable  |
+  |----------------|-----------|---------|-----------|---------|
+  | Example        | sub-1     | quota-1 |   45,000  | `true`  |
+  | Size(137 byte) | 64 byte   | 64 byte |   8 byte  | 1 byte  |
+
+- Customer: B2B System (23 KB ~ 2.3 MB)
+
+  | Company Size   | # of Employees | Quota Meta | User Quota            | Total   |
+  |----------------|----------------|------------|-----------------------|---------|
+  | Small          | 10   - 100     | 92 KB      |   14 KB (  100 * 137) |   23 KB |
+  | Mid            | 101  - 999     | 92 KB      |  137 KB ( 1000 * 137) |  229 KB |
+  | Large          | 1000 -         | 92 KB      | 1.37 MB (10000 * 137) | 2.29 MB |
+
+- Customer: B2C System (137 MB ~ 735 GB)
+
+  | Category       | # of users | Quota Meta | User Quota               | Total       |
+  |----------------|------------|------------|--------------------------|-------------|
+  | Level-1        |   1 M      | 92 KB      |   137.00 MB (  1M * 137) |   137.09 MB |
+  | Level-2        |  10 M      | 92 KB      |     1.37 GB ( 10M * 137) |     1.37 GB |
+  | Level-3        | 100 M      | 92 KB      |    13.70 GB (100M * 137) |    13.70 GB |
+  | Level-4        |   1 B      | 92 KB      |   137.00 GB (  1B * 137) |   137.01 GB |
+  | Social Media   |   4 B      | 92 KB      |   548.00 GB (  4B * 137) |   548.01 GB |
+  | Internet Users |   5 B      | 92 KB      |   735.00 GB (  5B * 137) |   735.01 GB |
+
+- Historical Data
+  * Policy ID: Keep removed Policy ID in a different table with `quota_meta`.
+  * Decision point: int for high performance or UUID for flexibility
+
+- Daily Active Users
+
+- Quota Manager
+- API Gateway
+
+
 
 ## Engineering Plan
 - Stand-Alone Quota Mgmt.
@@ -109,6 +157,9 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 - Quota Mgmt. for multiple API gateways
 - Distributed Quota Mgmt.
 - NJS module
-- C or Rust module
 - Event Bus
 - Customers' DBMSes Integration
+  + nginx.conf
+- C or Rust module
+- TBD
+  + Historical Usage
