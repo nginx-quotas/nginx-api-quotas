@@ -1,0 +1,198 @@
++--------------------------------------------------------+
+|                                                        |
+|                    Functional Test                     |
+|                                                        |
+|     (Rate Limiter Client -> Rate Limiter & Bucket)     |
+|                                                        |
++--------------------------------------------------------+
+
+__________________[ Test Case 1 Report ]__________________
+
+001. remaining: 3, 1641733112.402514 ,  True
+002. remaining: 2, 1641733112.402637 ,  True
+003. remaining: 1, 1641733112.402656 ,  True
+004. remaining: 0, 1641733112.402667 , False
+     quota exhausted: request-004 is denied
+
+005. remaining: 3, 1641733113.404896 ,  True
+006. remaining: 2, 1641733113.405069 ,  True
+007. remaining: 1, 1641733113.405118 ,  True
+008. remaining: 0, 1641733113.405151 , False
+     quota exhausted: request-008 is denied
+
+009. remaining: 3, 1641733114.4103858,  True
+010. remaining: 2, 1641733114.410569 ,  True
+
+__________________[ Test Case 2 Report ]__________________
+
+
+              User Level Rate Limiter Test
+
+User ID: shawn
++-----+------------------+--------------------+--------+
+| No. | Quota Remainings | API Request Time   | Result |
++-----+------------------+--------------------+--------+
+| 001 |                3 | 16417331144.801779 |  True  |
+| 002 |                2 | 16417331144.802269 |  True  |
+| 003 |                1 | 16417331144.802408 |  True  |
+| 004 |                0 | 16417331144.80257  | False  |
+|     | quota exhausted. | request-004 is denied.      |
++-----+------------------+--------------------+--------+
+| 005 |                3 | 16417331145.83689  |  True  |
+| 006 |                2 | 16417331145.83775  |  True  |
+| 007 |                1 | 16417331145.83808  |  True  |
+| 008 |                0 | 16417331145.838348 | False  |
+|     | quota exhausted. | request-008 is denied.      |
++-----+------------------+--------------------+--------+
+| 009 |                3 | 16417331146.88179  |  True  |
+| 010 |                2 | 16417331146.882702 |  True  |
++-----+------------------+--------------------+--------+
+
+__________________[ Test Case 3 Report ]__________________
+
+
+              User Rate Limiter Test without Configuration
+
++-----+--------------------+-----------------------------------------+
+| No. | API Request Time   | Result                                  |
++-----+--------------------+-----------------------------------------+
+| 001 | 16417331147.50431  | The rate-limit policy is not configured |
+| 002 | 16417331148.514729 | The rate-limit policy is not configured |
+| 003 | 16417331149.519548 | The rate-limit policy is not configured |
+| 004 | 16417331150.54367  | The rate-limit policy is not configured |
+| 005 | 16417331151.56664  | The rate-limit policy is not configured |
+| 006 | 16417331152.59389  | The rate-limit policy is not configured |
+| 007 | 16417331153.598553 | The rate-limit policy is not configured |
+| 008 | 16417331154.619799 | The rate-limit policy is not configured |
+| 009 | 16417331155.62377  | The rate-limit policy is not configured |
+| 010 | 16417331156.63163  | The rate-limit policy is not configured |
++-----+--------------------+-----------------------------------------+
+
+__________________[ Test Case 4 Report ]__________________
+
+
+              Global Rate Limiter Test
+
++-----+------------------+--------------------+--------+
+| No. | Quota Remainings | API Request Time   | Result |
++-----+------------------+--------------------+--------+
+| 001 |                3 | 16417331158.265541 |  True  |
+| 002 |                2 | 16417331158.266571 |  True  |
+| 003 |                1 | 16417331158.26688  |  True  |
+| 004 |                0 | 16417331158.26712  | False  |
+|     | quota exhausted. | request-004 is denied.      |
++-----+------------------+--------------------+--------+
+| 005 |                3 | 16417331159.28458  |  True  |
+| 006 |                2 | 16417331159.287779 |  True  |
+| 007 |                1 | 16417331159.28876  |  True  |
+| 008 |                0 | 16417331159.289742 | False  |
+|     | quota exhausted. | request-008 is denied.      |
++-----+------------------+--------------------+--------+
+| 009 |                3 | 16417331160.32736  |  True  |
+| 010 |                2 | 16417331160.329731 |  True  |
++-----+------------------+--------------------+--------+
+
+__________________[ Test Case 5 Report ]__________________
+
+
+            Global Rate Limiter Test without Configuration
+
++-----+--------------------+-----------------------------------------+
+| No. | API Request Time   | Result                                  |
++-----+--------------------+-----------------------------------------+
+| 001 | 16417331160.97759  | The rate-limit policy is not configured |
+| 002 | 16417331161.99741  | The rate-limit policy is not configured |
+| 003 | 16417331163.049719 | The rate-limit policy is not configured |
+| 004 | 16417331164.096079 | The rate-limit policy is not configured |
+| 005 | 16417331165.1301   | The rate-limit policy is not configured |
+| 006 | 16417331166.14206  | The rate-limit policy is not configured |
+| 007 | 16417331167.14717  | The rate-limit policy is not configured |
+| 008 | 16417331168.1908   | The rate-limit policy is not configured |
+| 009 | 16417331169.218231 | The rate-limit policy is not configured |
+| 010 | 16417331170.26577  | The rate-limit policy is not configured |
++-----+--------------------+-----------------------------------------+
+
+__________________[ Test Case 6 Report ]__________________
+
+
+           Both Global/User Rate Limiter Test
+
++-----+------------------+--------------------+--------+
+| No. | Quota Remainings | API Request Time   | Result |
+|     +---------+--------+                    |        |
+|     | Global  |  User  |                    |        |
++-----+---------+--------+--------------------+--------+
+| 001 |     5   |    3   | 16417331172.01047  |  True  |
+| 002 |     5   |    2   | 16417331172.011608 |  True  |
+| 003 |     5   |    1   | 16417331172.01194  |  True  |
+| 004 |     5   |    0   | 16417331172.01223  | False  |
+|     | quota exhausted. | request-004 is denied.      |
++-----+---------+--------+--------------------+--------+
+| 005 |     5   |    3   | 16417331173.04911  |  True  |
+| 006 |     5   |    2   | 16417331173.050339 |  True  |
+| 007 |     5   |    1   | 16417331173.0509   |  True  |
+| 008 |     5   |    0   | 16417331173.051378 | False  |
+|     | quota exhausted. | request-008 is denied.      |
++-----+---------+--------+--------------------+--------+
+| 009 |     5   |    3   | 16417331174.10075  |  True  |
+| 010 |     5   |    2   | 16417331174.10154  |  True  |
++-----+---------+--------+--------------------+--------+
+
+__________________[ Test Case 7 Report ]__________________
+
+
+               Both Global & 2 Users Rate Limiter Test
+
++-----+------------------------+--------------------+---------------+
+|     |    Quota Remainings    |                    |    Result     |
+| No. +--------+-------+-------+  API Request Time  +-------+-------+
+|     | Global | User1 | User2 |                    | User1 | User2 |
++-----+--------+-------+-------+--------------------+-------+-------+
+| 001 |      5 |     3 |     3 | 16417331175.06817  |  True |  True |
+| 002 |      5 |     2 |     2 | 16417331175.069042 |  True |  True |
+| 003 |      5 |     1 |     1 | 16417331175.06942  |  True |  True |
+| 004 |      5 |     0 |     0 | 16417331175.06976  | False | False |
+|     | user-1 quota exhausted | request-004 is denied.             |
+|     | user-2 quota exhausted | request-004 is denied.             |
++-----+--------+-------+-------+--------------------+-------+-------+
+| 005 |      5 |     3 |     3 | 16417331176.09091  |  True |  True |
+| 006 |      5 |     2 |     2 | 16417331176.09313  |  True |  True |
+| 007 |      5 |     1 |     1 | 16417331176.09364  |  True |  True |
+| 008 |      5 |     0 |     0 | 16417331176.094051 | False | False |
+|     | user-1 quota exhausted | request-008 is denied.             |
+|     | user-2 quota exhausted | request-008 is denied.             |
++-----+--------+-------+-------+--------------------+-------+-------+
+| 009 |      5 |     3 |     3 | 16417331177.14357  |  True |  True |
+| 010 |      5 |     2 |     2 | 16417331177.144583 |  True |  True |
++-----+--------+-------+-------+--------------------+-------+-------+
+
+__________________[ Test Case 8 Report ]__________________
+
+
+      Both Global & 2 Users Rate Limiter Test With Different RPS
+
++-----+------------------------+--------------------+---------------+
+|     |    Quota Remainings    |                    |    Result     |
+| No. +--------+-------+-------+  API Request Time  +-------+-------+
+|     | Global | User1 | User2 |                    | User1 | User2 |
++-----+--------+-------+-------+--------------------+-------+-------+
+| 001 |      5 |     4 |     3 | 16417331177.830889 |  True |  True |
+| 002 |      5 |     3 |     2 | 16417331177.831781 |  True |  True |
+| 003 |      5 |     2 |     1 | 16417331177.83231  |  True |  True |
+| 004 |      5 |     1 |     0 | 16417331177.832682 |  True | False |
+|     | user-2 quota exhausted | request-004 is denied.             |
++-----+--------+-------+-------+--------------------+-------+-------+
+| 005 |      5 |     0 |     0 | 16417331178.33559  | False | False |
+|     | user-1 quota exhausted | request-005 is denied.             |
+|     | user-2 quota exhausted | request-005 is denied.             |
++-----+--------+-------+-------+--------------------+-------+-------+
+| 006 |      5 |     4 |     3 | 16417331179.383318 |  True |  True |
+| 007 |      5 |     3 |     2 | 16417331179.38393  |  True |  True |
+| 008 |      5 |     2 |     1 | 16417331179.38509  |  True |  True |
+| 009 |      5 |     1 |     0 | 16417331179.385622 |  True | False |
+|     | user-2 quota exhausted | request-009 is denied.             |
++-----+--------+-------+-------+--------------------+-------+-------+
+| 010 |      5 |     0 |     0 | 16417331179.93185  | False | False |
+|     | user-1 quota exhausted | request-010 is denied.             |
+|     | user-2 quota exhausted | request-010 is denied.             |
++-----+--------+-------+-------+--------------------+-------+-------+

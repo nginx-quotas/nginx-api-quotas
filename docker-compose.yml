@@ -1,0 +1,127 @@
+version: '2.2'
+
+networks: 
+  mynetwork:
+    name: mynetwork
+    attachable: true
+
+services:
+  # NGINX API Gateway to limit API quotas on a user
+  nginx-api-gateway:
+    container_name: nginx-api-gateway
+    build:
+      context: ./
+      dockerfile: ./docker/nginx-api-gateway/Dockerfile
+    image: nginx-api-gateway
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - type: bind
+        source: ./services/nginx-api-gateway
+        target: /etc/nginx/
+      - type: bind
+        source: ./services/nginx-api-gateway/conf.d
+        target: /etc/nginx/conf.d/
+    networks:
+      - mynetwork
+
+  # Frontend NGINX Quota Simulator
+  nginx-quota-simulator:
+    container_name: nginx-quota-simulator
+    build:
+      context: ./
+      dockerfile: ./docker/nginx-quota-simulator/Dockerfile
+    image: nginx-quota-simulator
+    ports:
+      - 10080:80
+      - 10443:443
+    volumes:
+      - type: bind
+        source: ./services/nginx-quota-simulator
+        target: /etc/nginx/
+      - type: bind
+        source: ./services/nginx-quota-simulator/conf.d
+        target: /etc/nginx/conf.d
+      - type: bind
+        source: ./services/nginx-quota-simulator/content
+        target: /usr/share/nginx/html/
+    networks:
+      - mynetwork
+
+  # Backend NGINX Quota Manager for Distributed API Gateways
+  nginx-quota-manager:
+    container_name: nginx-quota-manager
+    build:
+      context: ./
+      dockerfile: ./docker/nginx-quota-manager/Dockerfile
+    image: nginx-quota-manager
+    ports:
+      - 11080:80
+      - 11443:443
+    volumes:
+      - type: bind
+        source: ./services/nginx-quota-manager
+        target: /etc/nginx/
+      - type: bind
+        source: ./services/nginx-quota-manager/conf.d
+        target: /etc/nginx/conf.d/
+    networks:
+      - mynetwork
+
+  # Sample Chat Service
+  sample-chat-service:
+    container_name: sample-chat-service
+    build:
+      context: ./
+      dockerfile: ./docker/sample-chat-service/Dockerfile
+    image: sample-chat-service
+    ports:
+      - 12080:80
+    volumes:
+      - type: bind
+        source: ./services/sample-chat-service
+        target: /etc/nginx/
+      - type: bind
+        source: ./services/sample-chat-service/conf.d
+        target: /etc/nginx/conf.d/
+    networks:
+      - mynetwork
+
+  # Sample upload Service
+  sample-upload-service:
+    container_name: sample-upload-service
+    build:
+      context: ./
+      dockerfile: ./docker/sample-upload-service/Dockerfile
+    image: sample-upload-service
+    ports:
+      - 13080:80
+    volumes:
+      - type: bind
+        source: ./services/sample-upload-service
+        target: /etc/nginx/
+      - type: bind
+        source: ./services/sample-upload-service/conf.d
+        target: /etc/nginx/conf.d/
+    networks:
+      - mynetwork
+
+  # The Amazon Web Services database system that supports data structures and 
+  # key-valued cloud services. It allows users the benefit of auto-scaling, 
+  # in-memory caching, backup and restore options for all their internet-scale
+  # applications using DynamoDB.
+  dynamodb:
+    image:  amazon/dynamodb-local
+    container_name: key-value-store
+    hostname: dynamodb
+    # restart: always
+    volumes:
+      - type: bind
+        source: ./services/dynamodb/data
+        target: /home/dynamodblocal/data
+    ports:
+      - 8000:8000
+    command: "-jar DynamoDBLocal.jar -sharedDb --port 8000 -dbPath /home/dynamodblocal/data/"
+    networks:
+      - mynetwork

@@ -1,0 +1,222 @@
++--------------------------------------------------------+
+|                                                        |
+|                    Integration Test                    |
+|                                         Memory         |
+|                                           |            |
+|  (API Request --> API Gateway <-+-> Rate Limiter App)  |
+|                                 |                      |
+|                                 +-> Fake Upload App    |
+|                                                        |
++--------------------------------------------------------+
+
+__________________[ Test Case 1 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Configuring a global rate-limiter.         |
++-----------+--------------------------------------------+
+
+{
+    "quota_limit": 1,
+    "limit_per": "rps",
+    "bucket_name": "global",
+    "quota_remaining": 1
+}
+
+- Response Code: 201
+- Configured a global rate-limiter.
+
+
+__________________[ Test Case 2 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Configuring a user-01 rate-limiter.        |
++-----------+--------------------------------------------+
+
+{
+    "quota_limit": 1,
+    "limit_per": "rps",
+    "bucket_name": "user-01",
+    "quota_remaining": 1
+}
+
+- Response Code: 201
+- Configured a user-01 rate-limiter.
+
+
+__________________[ Test Case 3 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Configuring a user-02 rate-limiter.        |
++-----------+--------------------------------------------+
+
+{
+    "quota_limit": 3,
+    "limit_per": "rps",
+    "bucket_name": "user-02",
+    "quota_remaining": 3
+}
+
+- Response Code: 201
+- Configured a user-02 rate-limiter.
+
+
+__________________[ Test Case 4 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Upload an image by user-01. (quota: 1)     |
++-----------+--------------------------------------------+
+
+{
+    "user": user-01,
+    "message": "an image file has been uploaded!"
+}
+
+- Attempting Count: 1
+- Response Code: 200
+- Uploaded an image for an user-02.
+
+{"message": "quota exceeded"}
+
+- Attempting Count: 2
+- Response Code: 429
+- Uploaded an image for an user-02.
+
+{"message": "quota exceeded"}
+
+- Attempting Count: 3
+- Response Code: 429
+- Uploaded an image for an user-02.
+
+{"message": "quota exceeded"}
+
+- Attempting Count: 4
+- Response Code: 429
+- Uploaded an image for an user-02.
+
+{"message": "quota exceeded"}
+
+- Attempting Count: 5
+- Response Code: 429
+- Uploaded an image for an user-02.
+
+Result for uploading an image by user-01:
++---------------------------------------------------------+
+| - Quota limit      per a second: 1                      |
+| - Allowed Requests per a second: 1                      |
+| - Successfully managed quota limit by rate-limiter.     |
++---------------------------------------------------------+
+
+__________________[ Test Case 5 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Upload an image by user-02. (quota: 3)     |
++-----------+--------------------------------------------+
+
+{
+    "user": user-02,
+    "message": "an image file has been uploaded!"
+}
+
+- Attempting Count: 1
+- Response Code: 200
+- Uploaded an image for an user-02.
+
+{
+    "user": user-02,
+    "message": "an image file has been uploaded!"
+}
+
+- Attempting Count: 2
+- Response Code: 200
+- Uploaded an image for an user-02.
+
+{
+    "user": user-02,
+    "message": "an image file has been uploaded!"
+}
+
+- Attempting Count: 3
+- Response Code: 200
+- Uploaded an image for an user-02.
+
+{"message": "quota exceeded"}
+
+- Attempting Count: 4
+- Response Code: 429
+- Uploaded an image for an user-02.
+
+{"message": "quota exceeded"}
+
+- Attempting Count: 5
+- Response Code: 429
+- Uploaded an image for an user-02.
+
+Result for uploading an image by user-02:
++---------------------------------------------------------+
+| - Quota limit      per a second: 3                      |
+| - Allowed Requests per a second: 3                      |
+| - Successfully managed quota limit by rate-limiter.     |
++---------------------------------------------------------+
+
+__________________[ Test Case 6 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Upload an image by attacker                |
++-----------+--------------------------------------------+
+
+{"message": "user_id not found"}
+
+- Attempting Count: 1
+- Response Code: 404
+{"message": "user_id not found"}
+
+- Attempting Count: 2
+- Response Code: 404
+{"message": "user_id not found"}
+
+- Attempting Count: 3
+- Response Code: 404
+{"message": "user_id not found"}
+
+- Attempting Count: 4
+- Response Code: 404
+{"message": "user_id not found"}
+
+- Attempting Count: 5
+- Response Code: 404
+
+Result for uploading an image by unknown user(attacker):
++----------------------------------------------------------+
+| - API request count : 5                                  |
+| - API rejected count: 5                                  |
+| - Successfully rejected unknown attackers' API requests. |
++----------------------------------------------------------+
+
+__________________[ Test Case 7 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Delete a global rate limit configuration.  |
++-----------+--------------------------------------------+
+
+- Response Code: 204
+- Successfully deleted a global rate-limiter.
+
+
+__________________[ Test Case 8 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Delete a user_01 rate limit configuration. |
++-----------+--------------------------------------------+
+
+- Response Code: 204
+- Successfully deleted a global rate-limiter.
+
+
+__________________[ Test Case 9 Report ]__________________
+
++-----------+--------------------------------------------+
+| Test-Case | Delete a user_02 rate limit configuration. |
++-----------+--------------------------------------------+
+
+- Response Code: 204
+- Successfully deleted a global rate-limiter.

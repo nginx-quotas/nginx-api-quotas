@@ -1,0 +1,740 @@
+{
+	"info": {
+		"_postman_id": "1c9ec8bd-9a9a-4f6b-a325-a3e0603c1d31",
+		"name": "Distributed Rate Limiter",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Configuration",
+			"item": [
+				{
+					"name": "1.1 Upsert config",
+					"item": [
+						{
+							"name": "configure global limit",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									},
+									{
+										"key": "",
+										"value": "",
+										"type": "default",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 1,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/global",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"global"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "configure user-1 limit",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 1,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/user-01",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"user-01"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "configure user-2 limit",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 3,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/user-02",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"user-02"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "configure user-2 limit (sub)",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 3,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/c1d238cd-446f-4e12-b43d-2a8be06a68f9",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"c1d238cd-446f-4e12-b43d-2a8be06a68f9"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "1.2 Get config",
+					"item": [
+						{
+							"name": "get global limit config",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 5,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/global",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"global"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get user-01 limit config",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 5,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/user-01",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"user-01"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get user-02 limit config",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 5,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/user-02",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"user-02"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get user-02 limit config (sub)",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "session_id={{your-session-id}}",
+										"type": "default"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 5,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/c1d238cd-446f-4e12-b43d-2a8be06a68f9",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"c1d238cd-446f-4e12-b43d-2a8be06a68f9"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "1.3 Delete config",
+					"item": [
+						{
+							"name": "delete global limit",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 5,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/global",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"global"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete user-01 limit",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 5,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/user-01",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"user-01"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete user-02 limit",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"quota_limit\": 5,\n  \"limit_per\": \"rps\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/user-02",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"user-02"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete user-01 limit (sub)",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://{{limiter-host}}/ratelimits/config/users/c1d238cd-446f-4e12-b43d-2a8be06a68f9",
+									"protocol": "https",
+									"host": [
+										"{{limiter-host}}"
+									],
+									"path": [
+										"ratelimits",
+										"config",
+										"users",
+										"c1d238cd-446f-4e12-b43d-2a8be06a68f9"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "2. Rate Limiting Request",
+			"item": [
+				{
+					"name": "process request (global)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{limiter-host}}/ratelimits/decrement/global",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"ratelimits",
+								"decrement",
+								"global"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "process request (user-01)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{limiter-host}}/ratelimits/decrement/users/user-01",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"ratelimits",
+								"decrement",
+								"users",
+								"user-01"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "process request (user-02)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{limiter-host}}/ratelimits/decrement/users/user-02",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"ratelimits",
+								"decrement",
+								"users",
+								"user-02"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Rate Limit Status",
+			"item": [
+				{
+					"name": "get list of limit status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{limiter-host}}/ratelimits/status",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"ratelimits",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get global limit status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{limiter-host}}/ratelimits/status/global",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"ratelimits",
+								"status",
+								"global"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user-01 limit status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{limiter-host}}/ratelimits/status/users/user-01",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"ratelimits",
+								"status",
+								"users",
+								"user-01"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user-02 limit status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{limiter-host}}/ratelimits/status/users/user-01",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"ratelimits",
+								"status",
+								"users",
+								"user-01"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. API GW (w/ Limiter) -> Upload App",
+			"item": [
+				{
+					"name": "Upload image (user-01)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "session_id={{your-session-id}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{limiter-host}}/images",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload image (user-02)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "session_id={{your-session-id}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{limiter-host}}/images",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload image (attacker)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "session_id={{your-session-id}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{limiter-host}}/images",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"images"
+							],
+							"query": [
+								{
+									"key": "sub",
+									"value": "user-02",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "status (attacker, global-user)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "user_id=unknown",
+								"type": "default",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{limiter-host}}/dummy",
+							"protocol": "https",
+							"host": [
+								"{{limiter-host}}"
+							],
+							"path": [
+								"dummy"
+							],
+							"query": [
+								{
+									"key": "sub",
+									"value": "user-02",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
