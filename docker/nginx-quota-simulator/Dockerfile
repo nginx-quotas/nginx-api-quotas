@@ -1,12 +1,14 @@
-FROM python:3.7
+FROM nginx
+
 LABEL maintainer="Shawn"
 
-COPY ./services/nginx-quota-simulator/. /var/www/nginx-quota-simulator/
+RUN   mkdir -p /etc/nginx
+RUN   mkdir -p /etc/nginx/conf.d
+RUN   chmod -R 777 /etc/nginx
+RUN   chmod -R 777 /etc/nginx/conf.d
+RUN   chmod -R 777 /usr/share/nginx/html/
 
-WORKDIR /var/www/nginx-quota-simulator/app
-ENV PYTHONPATH "${PYTHONPATH}:/var/www/nginx-quota-simulator/"
+COPY  ./services/nginx-quota-simulator    /etc/nginx/
 
-RUN pip install -r requirements.txt
-
-ENTRYPOINT ["python"]
-CMD ["app.py"]
+STOPSIGNAL SIGTERM
+CMD ["nginx", "-g", "daemon off;"]

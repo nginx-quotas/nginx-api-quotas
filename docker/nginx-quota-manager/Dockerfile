@@ -1,12 +1,12 @@
-FROM nginx
-
+FROM python:3.7
 LABEL maintainer="Shawn"
 
-RUN   mkdir -p /etc/nginx
-RUN   mkdir -p /etc/nginx/conf.d
-RUN   chmod -R 777 /etc/nginx
-RUN   chmod -R 777 /etc/nginx/conf.d
-COPY  ./services/nginx-quota-manager    /etc/nginx/
+COPY ./services/nginx-quota-manager/ /var/www/nginx-quota-manager/
 
-STOPSIGNAL SIGTERM
-CMD ["nginx", "-g", "daemon off;"]
+WORKDIR /var/www/nginx-quota-manager/app
+ENV PYTHONPATH "${PYTHONPATH}:/var/www/nginx-quota-manager/"
+
+RUN pip install -r requirements.txt
+
+ENTRYPOINT ["python"]
+CMD ["app.py"]
