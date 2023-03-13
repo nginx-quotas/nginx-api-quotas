@@ -146,8 +146,12 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 
 - Quota Manager
 - API Gateway
+- Eventual Consistency
 
-
+- DB-less mode by using NGINX Key/Value Store (Map & Cache)
+  + `nginx-users-quotas-map.conf`
+  + `nginx-quota-policy-map.conf`
+  + `nginx-quota-cache.json`
 
 ## Engineering Plan
 - Stand-Alone Quota Mgmt.
