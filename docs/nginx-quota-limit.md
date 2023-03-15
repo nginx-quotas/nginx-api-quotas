@@ -177,3 +177,4 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
     - servered
     - serverless
   + NGINX quota DB gateway
+  + NGINX quota data exporter for data analytics
