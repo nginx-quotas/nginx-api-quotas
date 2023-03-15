@@ -160,6 +160,9 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 - Quota Mgmt. for single API gateway
 - Quota Mgmt. for multiple API gateways
 - Distributed Quota Mgmt.
+  - multi clusters without zone sync within a same region
+  - zone sync
+  - multi reagions
 - NJS module
 - Event Bus
 - Customers' DBMSes Integration
