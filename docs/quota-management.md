@@ -176,3 +176,4 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
   + NGINX payment gateway
     - servered
     - serverless
+  + NGINX quota DB gateway
