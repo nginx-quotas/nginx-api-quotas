@@ -29,19 +29,19 @@
         <button type="submit" id="signin">Sign in</button>
 
         <br>
-        <h4>Enter a global quota limit (rps):</h4>
-        <input type="int" id="global-quota-limit" value=1 name="global-quota-limit" />
-        <button type="submit" id="put-global-limit">Configure a global rate limiter</button>
-        <button type="submit" id="del-global-limit">Remove a global rate limiter config</button><br>
+        <h4>Enter a group quota limit (rps):</h4>
+        <input type="int" id="group-quota-limit" value=1 name="group-quota-limit" />
+        <button type="submit" id="put-group-limit">Configure a group quota</button>
+        <button type="submit" id="del-group-limit">Remove a group quota</button><br>
 
         <br>
         <h4>Enter a user quota limit (rps):</h4>
         <input type="int" id="user-quota-limit" value=1 name="user-quota-limit" />
-        <button type="submit" id="put-user-limit">Configure a user rate limiter</button>
-        <button type="submit" id="del-user-limit">Remove a user rate limiter config</button><br>
+        <button type="submit" id="put-user-limit">Configure a user quota</button>
+        <button type="submit" id="del-user-limit">Remove a user quota</button><br>
 
         <br>
-        <h4>Test rate-limit by API requests:</h4>
+        <h4>Test quota-limit by API requests:</h4>
         <button type="submit" id="upload-image">Upload an image file</button>
         <button type="submit" id="download-image">Dummy API request by attacker</button>
 

@@ -19,13 +19,13 @@ var MSG_DELETED = 'Deleted'
 var MSG_NOTFOUND = 'Not found or already deleted'
 var MSG_TOOMANYREQ = 'Too many requests';
 var btnSignin = document.getElementById('signin');
-var btnPutCfgGlobal = document.getElementById('put-global-limit');
-var btnDelCfgGlobal = document.getElementById('del-global-limit');
+var btnPutCfgGroup = document.getElementById('put-group-limit');
+var btnDelCfgGroup = document.getElementById('del-group-limit');
 var btnPutCfgUser = document.getElementById('put-user-limit');
 var btnDelCfgUser = document.getElementById('del-user-limit');
 var btnUploadImg = document.getElementById('upload-image');
 var btnDnloadImg = document.getElementById('download-image');
-var txtGlobalQuotaLimit = document.getElementById('global-quota-limit')
+var txtGroupQuotaLimit = document.getElementById('group-quota-limit')
 var txtUserQuotaLimit = document.getElementById('user-quota-limit')
 var jsonViewer = new JSONViewer();
 var viewerJSON = document.querySelector("#json").appendChild(jsonViewer.getContainer());
@@ -77,46 +77,46 @@ var eventHandlerSignIn = function (evt) {
   }
 };
 
-// Event Handler: for when clicking a button 'Configure a global rate limiter'.
-var eventHandlerPutCfgGlobal = function (evt) {
+// Event Handler: for when clicking a button 'Configure a group quota limiter'.
+var eventHandlerPutCfgGroup = function (evt) {
   var headers = { 'Content-Type': 'application/json' };
   var body = {
-    'quota_limit': getGlobalQuotaLimit(),
+    'quota_limit': getGroupQuotaLimit(),
     'limit_per': 'rps'
   };
   doAPIRequest(
     evt,
-    '/ratelimits/config/global',
+    '/quotalimits/config/group',
     'PUT',
-    'configuring a global rate limit...',
-    'configured a global rate limit',
+    'configuring a group quota limit...',
+    'configured a group quota limit',
     headers,
     JSON.stringify(body)
   )
 };
 
-// Event Handler: for when clicking a button 'Delete a global rate limiter'.
-var eventHandlerDelCfgGlobal = function (evt) {
+// Event Handler: for when clicking a button 'Delete a group quota limiter'.
+var eventHandlerDelCfgGroup = function (evt) {
   var headers = { 'Content-Type': 'application/json' };
   var body = {
-    'quota_limit': getGlobalQuotaLimit(),
+    'quota_limit': getGroupQuotaLimit(),
     'limit_per': 'rps'
   };
   doAPIRequest(
     evt,
-    '/ratelimits/config/global',
+    '/quotalimits/config/group',
     'DELETE',
-    'deleting a global rate limit...',
-    'deleted a global rate limit',
+    'deleting a group quota limit...',
+    'deleted a group quota limit',
     headers,
     JSON.stringify(body)
   )
 };
 
-// Event Handler: for when clicking a button 'Configure a user rate limiter'.
+// Event Handler: for when clicking a button 'Configure a user quota limiter'.
 var eventHandlerPutCfgUser = function (evt) {
   var headers = { 'Content-Type': 'application/json' };
-  var uri = '/ratelimits/config/users/' + userId;
+  var uri = '/quotalimits/config/users/' + userId;
   var body = {
     'quota_limit': getUserQuotaLimit(),
     'limit_per': 'rps'
@@ -125,19 +125,19 @@ var eventHandlerPutCfgUser = function (evt) {
     evt,
     uri,
     'PUT',
-    'configuring a user rate limit...',
-    'configured a user rate limit',
+    'configuring a user quota limit...',
+    'configured a user quota limit',
     headers,
     JSON.stringify(body)
   )
 };
 
-// Event Handler: for when clicking a button 'Delete a user rate limiter'.
+// Event Handler: for when clicking a button 'Delete a user quota limiter'.
 var eventHandlerDelCfgUser = function (evt) {
   var headers = {
     'Content-Type': 'application/json'
   };
-  var uri = '/ratelimits/config/users/' + userId;
+  var uri = '/quotalimits/config/users/' + userId;
   var body = {
     'quota_limit': getUserQuotaLimit(),
     'limit_per': 'rps'
@@ -146,8 +146,8 @@ var eventHandlerDelCfgUser = function (evt) {
     evt,
     uri,
     'DELETE',
-    'deleting a user rate limit...',
-    'deleted a user rate limit',
+    'deleting a user quota limit...',
+    'deleted a user quota limit',
     headers,
     JSON.stringify(body)
   )
@@ -368,8 +368,8 @@ var showSignOutBtn = function () {
   showMessage(MSG_SIGNED_IN);
 };
 
-var getGlobalQuotaLimit = function () {
-  return txtGlobalQuotaLimit.value;
+var getGroupQuotaLimit = function () {
+  return txtGroupQuotaLimit.value;
 };
 
 var getUserQuotaLimit = function () {
@@ -394,8 +394,8 @@ var getCookieValue = function (key) {
 
 // Add event lister of each button for testing NGINX Plus OIDC integration.
 btnSignin.addEventListener('click', eventHandlerSignIn);
-btnPutCfgGlobal.addEventListener('click', eventHandlerPutCfgGlobal);
-btnDelCfgGlobal.addEventListener('click', eventHandlerDelCfgGlobal);
+btnPutCfgGroup.addEventListener('click', eventHandlerPutCfgGroup);
+btnDelCfgGroup.addEventListener('click', eventHandlerDelCfgGroup);
 btnPutCfgUser.addEventListener('click', eventHandlerPutCfgUser);
 btnDelCfgUser.addEventListener('click', eventHandlerDelCfgUser);
 btnUploadImg.addEventListener('click', eventHandlerUploadImg);
