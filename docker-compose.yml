@@ -6,6 +6,29 @@ networks:
     attachable: true
 
 services:
+  # Frontend NGINX Quota Simulator
+  nginx-quota-simulator:
+    container_name: nginx-quota-simulator
+    build:
+      context: ./
+      dockerfile: ./docker/nginx-quota-simulator/Dockerfile
+    image: nginx-quota-simulator
+    ports:
+      - 10011:80
+      - 10443:443
+    volumes:
+      - type: bind
+        source: ./services/nginx-quota-simulator
+        target: /etc/nginx/
+      - type: bind
+        source: ./services/nginx-quota-simulator/conf.d
+        target: /etc/nginx/conf.d
+      - type: bind
+        source: ./services/nginx-quota-simulator/content
+        target: /usr/share/nginx/html/
+    networks:
+      - mynetwork
+
   # NGINX API Gateway to limit API quotas on a user
   nginx-api-gateway:
     container_name: nginx-api-gateway
@@ -23,29 +46,6 @@ services:
       - type: bind
         source: ./services/nginx-api-gateway/conf.d
         target: /etc/nginx/conf.d/
-    networks:
-      - mynetwork
-
-  # Frontend NGINX Quota Simulator
-  nginx-quota-simulator:
-    container_name: nginx-quota-simulator
-    build:
-      context: ./
-      dockerfile: ./docker/nginx-quota-simulator/Dockerfile
-    image: nginx-quota-simulator
-    ports:
-      - 10088:80
-      - 10443:443
-    volumes:
-      - type: bind
-        source: ./services/nginx-quota-simulator
-        target: /etc/nginx/
-      - type: bind
-        source: ./services/nginx-quota-simulator/conf.d
-        target: /etc/nginx/conf.d
-      - type: bind
-        source: ./services/nginx-quota-simulator/content
-        target: /usr/share/nginx/html/
     networks:
       - mynetwork
 
