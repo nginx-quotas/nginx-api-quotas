@@ -178,3 +178,10 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
     - serverless
   + NGINX quota DB gateway
   + NGINX quota data exporter for data analytics
+- Option
+  + Strong consistency
+    - Stand-alone
+    - Distributed
+  + Eventual consistency
+    - Stand-alone
+    - Distributed
