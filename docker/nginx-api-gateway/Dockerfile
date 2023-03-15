@@ -27,7 +27,7 @@ RUN set -x \
     && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 1001 nginx \
     # Install prerequisite packages, vim for editing, then Install NGINX Plus
     && apt-get update && apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends apt-transport-https lsb-release ca-certificates wget dnsutils gnupg vim-tiny apt-utils jq \
+    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends apt-transport-https lsb-release ca-certificates wget dnsutils gnupg vim-tiny apt-utils jq vim \
     # Install NGINX Plus from repo (https://cs.nginx.com/repo_setup)
     && wget http://nginx.org/keys/nginx_signing.key && apt-key add nginx_signing.key \
     && printf "deb https://plus-pkgs.nginx.com/ubuntu `lsb_release -cs` nginx-plus\n" | tee /etc/apt/sources.list.d/nginx-plus.list \
@@ -185,12 +185,14 @@ COPY  services/nginx-api-gateway/ssl/nginx-repo.key /etc/controller-agent/config
 RUN    mkdir -p /etc/nginx/conf.d                           \
     && mkdir -p /usr/share/nginx/html/css                   \
     && mkdir -p /var/lib/nginx/state                        \
-    && mkdir -p /etc/controller-agent/configurator/auxfiles
+    && mkdir -p /etc/controller-agent/configurator/auxfiles \
+    && mkdir -p /var/run/nginx-quota
 
 VOLUME /etc/nginx
 
 RUN    chmod -R 644 /etc/nginx
 RUN    chmod -R 644 /etc/nginx/conf.d
+RUN    chmod -R 666 /var/run/nginx-quota
 
 # COPY (Nginx configuration) directory
 COPY  services/nginx-api-gateway/nginx/conf.d/   /etc/nginx/conf.d/
