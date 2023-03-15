@@ -169,4 +169,11 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
   + nginx.conf
 - C or Rust module
 - TBD
+  + NGINX message broker gateway
+    - pub
+    - sub
   + Historical Usage
+  + NGINX payment gateway
+    - servered
+    - serverless
+  + NGINX quota DB gateway
