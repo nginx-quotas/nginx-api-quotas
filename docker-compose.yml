@@ -47,7 +47,7 @@ services:
     depends_on:
       - nginx-quota-limiter
 
-  # Backend NGINX Quota Manager for Distributed API Gateways
+  # Backend NGINX Quota Limiter for Distributed API Gateways
   nginx-quota-limiter:
     container_name: nginx-quota-limiter
     build:
@@ -60,6 +60,24 @@ services:
       - type: bind
         source: ./services/nginx-quota-limiter
         target: /var/www/nginx-quota-limiter/
+    networks:
+      - mynetwork
+    depends_on:
+      - dynamodb
+
+  # Backend NGINX Quota Limiter with DB for Distributed API Gateways
+  nginx-quota-limiter-w-db:
+    container_name: nginx-quota-limiter-w-db
+    build:
+      context: ./
+      dockerfile: ./docker/nginx-quota-limiter-w-db/Dockerfile
+    image: nginx-quota-limiter-w-db
+    ports:
+      - 12002:12002
+    volumes:
+      - type: bind
+        source: ./services/nginx-quota-limiter-w-db
+        target: /var/www/nginx-quota-limiter-w-db/
     networks:
       - mynetwork
     depends_on:
