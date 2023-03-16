@@ -14,12 +14,12 @@ def req_api_model():
         'quota_limit': fields.Integer(
             required=True,
             default=DEFAULT_RPS,
-            description='the number of times you can request per second (rps)'
+            description='the number of times you can request per a specific period'
         ),
         'limit_per': fields.String(
             required=True,
             default=Per.SEC,
-            description='requests per period of time such as second'
+            description='requests per a specific period such as second'
         )
     }
 

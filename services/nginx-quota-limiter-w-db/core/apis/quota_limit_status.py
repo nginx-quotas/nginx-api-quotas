@@ -29,6 +29,6 @@ class QuotaLimitStatus:
             'bucket_name': bucket['user_id'],
             'quota_limit': int(bucket['quota_limit']),
             'quota_remaining': int(bucket['quota_remaining']),
-            'limit_per': Per.SEC,
+            'limit_per': bucket['limit_per'],
             'last_update': float(bucket['last_update'])
         }

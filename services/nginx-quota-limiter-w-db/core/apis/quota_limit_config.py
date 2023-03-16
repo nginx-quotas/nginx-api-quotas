@@ -12,11 +12,11 @@ class QuotaLimitConfig:
         self.namespace = namespace
         self.datastore = datastore
 
-    def res_body(self, key='group', quota_limit=5, quota_remaining=5):
+    def res_body(self, key='group', quota_limit=5, quota_remaining=5, limit_per=Per.SEC):
         return {
             'bucket_name': str(key),
             'quota_limit': int(quota_limit),
-            'limit_per': Per.SEC,
+            'limit_per': limit_per,
             'quota_remaining': int(quota_remaining)
         }
 
@@ -24,7 +24,7 @@ class QuotaLimitConfig:
         try:
             res = self.datastore.get_bucket(user_id)
             body = self.res_body(
-                user_id, res['quota_limit'], res['quota_remaining']
+                user_id, res['quota_limit'], res['quota_remaining'], res['limit_per'], 
             )
         except ClientError as e:
             print(e.response['Error']['Message'])
@@ -32,14 +32,16 @@ class QuotaLimitConfig:
         else:
             return body, 200
 
-    def put(self, data, user_id='group'):
+    def put(self, data, user_id='group', decrement_api=None):
         try:
             self.datastore.create_bucket(user_id, data)
             res = self.datastore.get_bucket(user_id)
             print(res)
             body = self.res_body(
-                user_id, res['quota_limit'], res['quota_remaining']
+                user_id, res['quota_limit'], res['quota_remaining'], res['limit_per'], 
             )
+            if decrement_api:
+                decrement_api.update_time_window(res['limit_per'])
         except ClientError as e:
             print(e.response['Error']['Message'])
             return {}, 500

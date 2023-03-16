@@ -18,7 +18,7 @@ class QuotaLimitLevel(object):
 class QuotaLimitPer(object):
     SEC = 'rps'
     MIN = 'rpm'
-    HOUR = 'rpm'
+    HOUR = 'rph'
     DAY = 'rpd'
     MON = 'rpM'
 

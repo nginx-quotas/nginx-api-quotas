@@ -23,7 +23,7 @@ def res_api_model():
     )
     res['quota_limit'] = fields.Integer(
         default=DEFAULT_RPS,
-        description='the number of times you can request per second (rps)'
+        description='the number of times you can request per a specific period'
     )
     res['quota_remaining'] = fields.Integer(
         default=DEFAULT_RPS,
@@ -31,7 +31,7 @@ def res_api_model():
     )
     res['limit_per'] = fields.String(
         default=Per.SEC,
-        description='requests per period of time such as second'
+        description='requests per a specific period such as second'
     )
     res['last_update'] = fields.Float(
         default=time.time(),
