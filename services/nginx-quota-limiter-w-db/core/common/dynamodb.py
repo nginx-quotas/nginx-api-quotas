@@ -5,6 +5,7 @@ import time
 from python_dynamodb_lock.python_dynamodb_lock import (
     DynamoDBLockClient
 )
+from core.common.constants import QuotaLimitPer as Per
 
 
 DYNAMO_URL = 'http://host.docker.internal:8000'
@@ -78,13 +79,14 @@ class QuotaLimitDynamoDB:
         try:
             quota_limit = data.get('quota_limit', 5)
             quota_remaining = data.get('quota_remaining', quota_limit)
+            limit_per = data.get('limit_per', Per.SEC)
             table = self.db_service.Table(BUCKET_TBL)
             response = table.put_item(
                 Item={
                     'user_id': bucket_key,
                     'quota_limit': Decimal(quota_limit),
                     'quota_remaining': Decimal(quota_remaining),
-                    'limit_per': 'rps',
+                    'limit_per': limit_per,
                     'last_update': Decimal(time.time())
                 }
             )
@@ -133,6 +135,7 @@ class QuotaLimitDynamoDB:
         try:
             quota_limit = data.get('quota_limit', 5)
             quota_remaining = data.get('quota_remaining', 5)
+            limit_per = data.get('limit_per', Per.SEC)
             last_update = data.get('last_update', time.time())
             table = self.db_service.Table(BUCKET_TBL)
             response = table.update_item(
@@ -144,7 +147,7 @@ class QuotaLimitDynamoDB:
                 ExpressionAttributeValues={
                     ':l': Decimal(quota_limit),
                     ':r': Decimal(quota_remaining),
-                    ':p': 'rps',
+                    ':p': limit_per,
                     ':u': Decimal(last_update)
                 },
                 ReturnValues='UPDATED_NEW'

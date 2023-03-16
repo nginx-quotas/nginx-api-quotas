@@ -125,7 +125,7 @@ class GroupQuotaLimitConfigAPI(Resource):
     @ns_config.marshal_with(limit_res_model, code=200)
     def put(self):
         """Configure a group quota-limiter."""
-        return config_api.put(api.payload)
+        return config_api.put(api.payload, decrement_api)
 
     @ns_config.response(204, 'deleted')
     def delete(self):
