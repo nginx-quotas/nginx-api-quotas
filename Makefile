@@ -1,7 +1,7 @@
 .PHONY: start watch down clean clean-cache unit-test functional-test test
 .DEFAULT_GOAL := help
 
-PYTHONPATH=$(PWD)/services/rate-limiter
+PYTHONPATH=$(PWD)/services/nginx-quota-limiter
 export PYTHONPATH
 
 UNIT_TEST_PATH=$(PYTHONPATH)/test/unit

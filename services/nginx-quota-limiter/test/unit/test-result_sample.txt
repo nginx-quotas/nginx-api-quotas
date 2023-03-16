@@ -1,0 +1,10 @@
+============================================== test session starts ===============================================
+platform darwin -- Python 3.8.8, pytest-6.2.3, py-1.10.0, pluggy-0.13.1
+rootdir: /Users/devkim/Documents/github/pjt/standalone-quota-limiter
+plugins: anyio-2.2.0
+collected 10 items
+
+services/quota-limiter/test/unit/test_bucket.py ...                                                         [ 30%]
+services/quota-limiter/test/unit/test_quota_limiter.py .......                                               [100%]
+
+=============================================== 10 passed in 0.80s ===============================================
