@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "basePath": "/",
     "paths": {
-        "/quotalimits/config/group": {
+        "/quotas/config/group": {
             "put": {
                 "responses": {
                     "409": {
@@ -90,7 +90,7 @@
                 ]
             }
         },
-        "/quotalimits/config/users/{id}": {
+        "/quotas/config/users/{id}": {
             "parameters": [
                 {
                     "in": "path",
@@ -187,7 +187,7 @@
                 ]
             }
         },
-        "/quotalimits/decrement/group": {
+        "/quotas/decrement/group": {
             "get": {
                 "responses": {
                     "404": {
@@ -222,7 +222,7 @@
                 ]
             }
         },
-        "/quotalimits/decrement/users/{id}": {
+        "/quotas/decrement/users/{id}": {
             "parameters": [
                 {
                     "name": "id",
@@ -265,7 +265,7 @@
                 ]
             }
         },
-        "/quotalimits/status": {
+        "/quotas/status": {
             "get": {
                 "responses": {
                     "404": {
@@ -294,7 +294,7 @@
                 ]
             }
         },
-        "/quotalimits/status/group": {
+        "/quotas/status/group": {
             "get": {
                 "responses": {
                     "404": {
@@ -323,7 +323,7 @@
                 ]
             }
         },
-        "/quotalimits/status/users/{id}": {
+        "/quotas/status/users/{id}": {
             "parameters": [
                 {
                     "name": "id",

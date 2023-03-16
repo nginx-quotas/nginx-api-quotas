@@ -183,6 +183,7 @@ COPY  services/nginx-api-gateway/ssl/nginx-repo.crt /etc/controller-agent/config
 COPY  services/nginx-api-gateway/ssl/nginx-repo.key /etc/controller-agent/configurator/auxfiles/my-sample.key
 
 RUN    mkdir -p /etc/nginx/conf.d                           \
+    && mkdir -p /etc/nginx/conf.d/oidc                      \
     && mkdir -p /usr/share/nginx/html/css                   \
     && mkdir -p /var/lib/nginx/state                        \
     && mkdir -p /etc/controller-agent/configurator/auxfiles \
@@ -192,6 +193,7 @@ VOLUME /etc/nginx
 
 RUN    chmod -R 644 /etc/nginx
 RUN    chmod -R 644 /etc/nginx/conf.d
+RUN    chmod -R 644 /etc/nginx/conf.d/oidc
 RUN    chmod -R 666 /var/run/nginx-quota
 
 # COPY (Nginx configuration) directory

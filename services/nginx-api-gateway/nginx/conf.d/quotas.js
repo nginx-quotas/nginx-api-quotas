@@ -7,14 +7,15 @@ export default {
 }
 
 
-// Quota Limiting Request: Global or User Level Quota Decrement
+// Quota Limiting Request: Group or User Level Quota Decrement
 //
 function decrement(r) {
-    var uri = '/quotalimits/decrement/';
+    var uri = '/quotas/decrement/';
+    let key = r.variables.x_user_id + ':' + r.variables.proxy_name;
     if (!r.variables.x_user_id) {
-        uri += 'global';
+        uri += 'group';
     } else {
-        uri += 'users/' + r.variables.x_user_id;
+        uri += 'users/' + key;
     }
     r.subrequest(uri, function (res) {
         var body = JSON.parse(res.responseBody);
