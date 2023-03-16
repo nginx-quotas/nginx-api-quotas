@@ -45,22 +45,21 @@ services:
     networks:
       - mynetwork
     depends_on:
-      - nginx-quota-manager
+      - nginx-quota-limiter
 
   # Backend NGINX Quota Manager for Distributed API Gateways
-  nginx-quota-manager:
-    container_name: nginx-quota-manager
+  nginx-quota-limiter:
+    container_name: nginx-quota-limiter
     build:
       context: ./
-      dockerfile: ./docker/nginx-quota-manager/Dockerfile
-    image: nginx-quota-manager
+      dockerfile: ./docker/nginx-quota-limiter/Dockerfile
+    image: nginx-quota-limiter
     ports:
-      - 12001:80
-      - 12002:443
+      - 12001:12001
     volumes:
       - type: bind
-        source: ./services/nginx-quota-manager
-        target: /var/www/nginx-quota-manager/
+        source: ./services/nginx-quota-limiter
+        target: /var/www/nginx-quota-limiter/
     networks:
       - mynetwork
     depends_on:
@@ -85,6 +84,22 @@ services:
     networks:
       - mynetwork
 
+  # Sample object storage Service
+  sample-object-storage-service:
+    container_name: sample-object-storage-service
+    build:
+      context: ./
+      dockerfile: ./docker/sample-object-storage-service/Dockerfile
+    image: sample-object-storage-service
+    ports:
+      - 13001:80
+    volumes:
+      - type: bind
+        source: ./services/sample-object-storage-service/conf.d
+        target: /etc/nginx/conf.d/
+    networks:
+      - mynetwork
+
   # Sample Chat Service
   sample-chat-service:
     container_name: sample-chat-service
@@ -93,7 +108,7 @@ services:
       dockerfile: ./docker/sample-chat-service/Dockerfile
     image: sample-chat-service
     ports:
-      - 12088:80
+      - 14001:80
     volumes:
       - type: bind
         source: ./services/sample-chat-service/conf.d
@@ -101,18 +116,3 @@ services:
     networks:
       - mynetwork
 
-  # Sample upload Service
-  sample-upload-service:
-    container_name: sample-upload-service
-    build:
-      context: ./
-      dockerfile: ./docker/sample-upload-service/Dockerfile
-    image: sample-upload-service
-    ports:
-      - 13088:80
-    volumes:
-      - type: bind
-        source: ./services/sample-upload-service/conf.d
-        target: /etc/nginx/conf.d/
-    networks:
-      - mynetwork
