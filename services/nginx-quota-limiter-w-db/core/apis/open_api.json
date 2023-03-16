@@ -1,0 +1,481 @@
+{
+    "swagger": "2.0",
+    "basePath": "/",
+    "paths": {
+        "/quotalimits/config/group": {
+            "put": {
+                "responses": {
+                    "409": {
+                        "description": "The group quota-limit is already configured."
+                    },
+                    "404": {
+                        "description": "Unable to find a group quota-limit configuration."
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/quotalimit-res"
+                        }
+                    }
+                },
+                "summary": "Configure a group quota-limiter",
+                "operationId": "put_group_quota_limit_config_api",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/quotalimit-req"
+                        }
+                    },
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits"
+                ]
+            },
+            "delete": {
+                "responses": {
+                    "409": {
+                        "description": "The group quota-limit is already configured."
+                    },
+                    "404": {
+                        "description": "Unable to find a group quota-limit configuration."
+                    },
+                    "204": {
+                        "description": "deleted"
+                    }
+                },
+                "summary": "Delete a group quota-limiter",
+                "operationId": "delete_group_quota_limit_config_api",
+                "tags": [
+                    "quotalimits"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "409": {
+                        "description": "The group quota-limit is already configured."
+                    },
+                    "404": {
+                        "description": "Unable to find a group quota-limit configuration."
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/quotalimit-res"
+                        }
+                    }
+                },
+                "summary": "Get a group quota-limiter configuration information",
+                "operationId": "get_group_quota_limit_config_api",
+                "parameters": [
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits"
+                ]
+            }
+        },
+        "/quotalimits/config/users/{id}": {
+            "parameters": [
+                {
+                    "in": "path",
+                    "description": "Please enter a user ID",
+                    "name": "id",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "put": {
+                "responses": {
+                    "409": {
+                        "description": "The user quota-limit is already configured."
+                    },
+                    "404": {
+                        "description": "Unable to find a user quota-limit configuration."
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/quotalimit-res"
+                        }
+                    }
+                },
+                "summary": "Configure a user's quota-limiter",
+                "operationId": "put_user_quota_limit_config_api",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/quotalimit-req"
+                        }
+                    },
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits"
+                ]
+            },
+            "delete": {
+                "responses": {
+                    "409": {
+                        "description": "The user quota-limit is already configured."
+                    },
+                    "404": {
+                        "description": "Unable to find a user quota-limit configuration."
+                    },
+                    "204": {
+                        "description": "deleted"
+                    }
+                },
+                "summary": "Delete a user's quota-limiter",
+                "operationId": "delete_user_quota_limit_config_api",
+                "tags": [
+                    "quotalimits"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "409": {
+                        "description": "The user quota-limit is already configured."
+                    },
+                    "404": {
+                        "description": "Unable to find a user quota-limit configuration."
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/quotalimit-res"
+                        }
+                    }
+                },
+                "summary": "Get a user's quota-limiter configuration information",
+                "operationId": "get_user_quota_limit_config_api",
+                "parameters": [
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits"
+                ]
+            }
+        },
+        "/quotalimits/decrement/group": {
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "429": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/decrement-res"
+                        }
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/decrement-res"
+                        }
+                    }
+                },
+                "summary": "Reduce the number of quota remainings grouply",
+                "operationId": "get_group_quota_limit_decrement_api",
+                "parameters": [
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits"
+                ]
+            }
+        },
+        "/quotalimits/decrement/users/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "429": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/decrement-res"
+                        }
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/decrement-res"
+                        }
+                    }
+                },
+                "summary": "Reduce the number of quota remainings per user ID",
+                "operationId": "get_user_quota_limit_decrement_api",
+                "parameters": [
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits"
+                ]
+            }
+        },
+        "/quotalimits/status": {
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Status not found"
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/decrement-res"
+                        }
+                    }
+                },
+                "summary": "Get list of remainig status of group/user quota-limiter",
+                "operationId": "get_quota_limit_status_api",
+                "parameters": [
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits/status"
+                ]
+            }
+        },
+        "/quotalimits/status/group": {
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Status not found"
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/decrement-res"
+                        }
+                    }
+                },
+                "summary": "Get a remainig status of group quota-limiter",
+                "operationId": "get_group_quota_limit_status_api",
+                "parameters": [
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits/status"
+                ]
+            }
+        },
+        "/quotalimits/status/users/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Status not found"
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/decrement-res"
+                        }
+                    }
+                },
+                "summary": "Get a remainig status of a user's quota-limiter",
+                "operationId": "get_user_quota_limit_status_api",
+                "parameters": [
+                    {
+                        "name": "X-Fields",
+                        "in": "header",
+                        "type": "string",
+                        "format": "mask",
+                        "description": "An optional fields mask"
+                    }
+                ],
+                "tags": [
+                    "quotalimits/status"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "Quota Limiter Sync API",
+        "version": "1.0",
+        "description": "APIs for synchronizing quota-limit between quota-limiter and key/value datastore"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "tags": [
+        {
+            "name": "quotalimits",
+            "description": "Quota Limit Config for Data Plane"
+        },
+        {
+            "name": "quotalimits",
+            "description": "Quota Limit Request Per Group or User"
+        },
+        {
+            "name": "quotalimits/status",
+            "description": "Quota Limiter Status for All Buckets"
+        }
+    ],
+    "definitions": {
+        "quotalimit-req": {
+            "required": [
+                "limit_per",
+                "quota_limit"
+            ],
+            "properties": {
+                "quota_limit": {
+                    "type": "integer",
+                    "description": "the number of times you can request per second (rps)",
+                    "default": 5
+                },
+                "limit_per": {
+                    "type": "string",
+                    "description": "requests per period of time such as second",
+                    "default": "rps"
+                }
+            },
+            "type": "object"
+        },
+        "quotalimit-res": {
+            "required": [
+                "bucket_name",
+                "limit_per",
+                "quota_limit"
+            ],
+            "properties": {
+                "quota_limit": {
+                    "type": "integer",
+                    "description": "the number of times you can request per second (rps)",
+                    "default": 5
+                },
+                "limit_per": {
+                    "type": "string",
+                    "description": "requests per period of time such as second",
+                    "default": "rps"
+                },
+                "bucket_name": {
+                    "type": "string",
+                    "description": "quota-limiter bucket key: e.g. user-id",
+                    "default": "group"
+                },
+                "quota_remaining": {
+                    "type": "integer",
+                    "description": "remaining quota-units",
+                    "default": 5
+                }
+            },
+            "type": "object"
+        },
+        "decrement-res": {
+            "required": [
+                "bucket_name"
+            ],
+            "properties": {
+                "bucket_name": {
+                    "type": "string",
+                    "description": "quota-limiter bucket key: e.g. user-id",
+                    "default": "group"
+                },
+                "quota_limit": {
+                    "type": "integer",
+                    "description": "the number of times you can request per second (rps)",
+                    "default": 5
+                },
+                "quota_remaining": {
+                    "type": "integer",
+                    "description": "quota remainining",
+                    "default": 5
+                },
+                "limit_per": {
+                    "type": "string",
+                    "description": "requests per period of time such as second",
+                    "default": "rps"
+                },
+                "last_update": {
+                    "type": "number",
+                    "description": "last update time",
+                    "default": 1642057216.778389
+                }
+            },
+            "type": "object"
+        }
+    },
+    "responses": {
+        "ParseError": {
+            "description": "When a mask can't be parsed"
+        },
+        "MaskError": {
+            "description": "When any error occurs on mask"
+        }
+    }
+}

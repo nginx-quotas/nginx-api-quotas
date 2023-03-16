@@ -1,0 +1,4 @@
+flask
+flask-restx
+boto3
+python_dynamodb_lock

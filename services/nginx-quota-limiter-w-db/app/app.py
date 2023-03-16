@@ -1,22 +1,21 @@
-"""Quota Limiter Service API App"""
+"""Sync App"""
 
 from flask import Flask
 from flask_restx import Api, Resource
 from os import environ
 
-from core.apis.config import QuotaLimitConfig
-from core.apis.decrement import QuotaLimitDecrement
-from core.apis.policies import QuotaLimitPolicy
-from core.apis.status import QuotaLimitStatus
-from core.models.policies import (
-    req_api_model as policies_req_api_model,
-    res_api_model as policies_res_api_model
-)
-from core.models.quota_limits import (
+from core.apis.quota_limit_config import QuotaLimitConfig
+from core.apis.quota_limit_decrement import QuotaLimitDecrement
+from core.apis.quota_limit_status import QuotaLimitStatus
+from core.models.quota_limit_config import (
     req_api_model as quotalimit_req_api_model,
     res_api_model as quotalimit_res_api_model
 )
-from core.controller.quota_limiter import QuotaLimiter
+from core.models.quota_limit_decrement import (
+    req_api_model as decrement_req_api_model,
+    res_api_model as decrement_res_api_model
+)
+from core.common.dynamodb import QuotaLimitDynamoDB
 
 
 # --------------------------------------------------------------------------- #
@@ -28,7 +27,7 @@ from core.controller.quota_limiter import QuotaLimiter
 #     1) control plane: quota-limit policy for administrator                  #
 #        - This is not integrated with data plane yet.                        #
 #                                                                             #
-#     2) data plane: quota-limiter configuration and request per group/user   #
+#     2) data plane: quota-limiter configuration and request per globa/user   #
 #        - ns_config   : configuring quota-limit                              #
 #        - ns_decrement: quota-limit request                                  #
 #        - ns_status   : check quota-limit status                             #
@@ -37,13 +36,10 @@ from core.controller.quota_limiter import QuotaLimiter
 
 app = Flask(__name__)
 
-api = Api(app, version='1.0', title='Quota Limiter Service API',
-          description='APIs for managing policies and user/group quota-limits')
+api = Api(app, version='1.0', title='Quota Limiter Sync API',
+          description='APIs for synchronizing quota-limit between' +
+          ' quota-limiter and key/value datastore')
 
-ns_policy = api.namespace(
-    'quotalimits/policies',
-    description='Quota Limit Policies for Control Plane'
-)
 ns_config = api.namespace(
     'quotalimits',
     description='Quota Limit Config for Data Plane'
@@ -57,71 +53,28 @@ ns_status = api.namespace(
     description='Quota Limiter Status for All Buckets'
 )
 
-policy_req_model = api.model('policies-request', policies_req_api_model())
-policy_res_model = api.model('policies-response', policies_res_api_model())
-limit_req_model = api.model('quotalimit-request', quotalimit_req_api_model())
-limit_res_model = api.model('quotalimit-response', quotalimit_res_api_model())
+limit_req_model = api.model('quotalimit-req', quotalimit_req_api_model())
+limit_res_model = api.model('quotalimit-res', quotalimit_res_api_model())
+decrement_req_model = api.model('decrement-req', decrement_req_api_model())
+decrement_res_model = api.model('decrement-res', decrement_res_api_model())
 
-policies_api = QuotaLimitPolicy(ns_policy)
-limiter = QuotaLimiter()
-config_api = QuotaLimitConfig(limiter, ns_config)
-decrement_api = QuotaLimitDecrement(limiter, ns_decrement)
-status_api = QuotaLimitStatus(limiter, ns_decrement)
+dynamo_db = QuotaLimitDynamoDB()
+dynamo_db.create_table()
 
-
-# --------------------------------------------------------------------------- #
-#                                                                             #
-#                         -  Control Plane APIs  -                            #
-#                                                                             #
-#   Create, update, get and delete quota-limit policies for administrator.     #
-#                                                                             #
-# --------------------------------------------------------------------------- #
-
-@ns_policy.route('')
-@ns_policy.response(409, 'The policy of quota-limit already exists.')
-class ListPostPolicyAPI(Resource):
-    """Quota Limit API to list policies and create a policy.
-
-    It is routed to the endpoint of '{{FQDN}}/quota-limits-policies'.
-    """
-    @ns_policy.marshal_list_with(policy_res_model, code=200)
-    def get(self):
-        """Get all list of quota-limit policies"""
-        return policies_api.list()
-
-    @ns_policy.expect(policy_req_model)
-    @ns_policy.marshal_with(policy_res_model, code=201)
-    def post(self):
-        """Create a new quota-limit policy"""
-        return policies_api.post(api.payload)
+config_api = QuotaLimitConfig(ns_config, dynamo_db)
+decrement_api = QuotaLimitDecrement(ns_decrement, dynamo_db)
+status_api = QuotaLimitStatus(ns_decrement, dynamo_db)
 
 
-@ns_policy.route('/<int:id>')
-@ns_policy.response(404, 'Unable to find the policy ID of quota-limit.')
-@ns_policy.response(409, 'The policy of quota-limit already exists.')
-@ns_policy.param('id', 'Please enter a policy ID of quota-limit.')
-class GetPutDelPolicyAPI(Resource):
-    """Quota Limit API to get, update and delete a policy.
+"""
+View DynamoDB Local tables with DyanmoDB Admin GUI:
 
-    It is routed to the endpoint of '{{FQDN}}/quota-limits-policies/<int:id>'.
-    """
-    @ns_policy.marshal_with(policy_res_model, code=200)
-    def get(self, id):
-        """Read a quota-limit policy"""
-        return policies_api.get(id)
+    $ npm install -g dynamodb-admin
+    $ DYNAMO_ENDPOINT=http://localhost:8000 dynamodb-admin
 
-    @ns_policy.expect(policy_req_model)
-    @ns_policy.marshal_with(policy_res_model, code=200)
-    def put(self, id):
-        """Update a quota-limit policy"""
-        return policies_api.put(id, api.payload)
-
-    @ns_policy.response(204, 'deleted')
-    def delete(self, id):
-        """Delete a quota-limit policy"""
-        return policies_api.delete(id)
-
-
+Now visit http://localhost:8001 on your web browser to access the
+dynamodb-admin GUI.
+"""
 # --------------------------------------------------------------------------- #
 #                                                                             #
 #                            -  Data Plane APIs  -                            #
@@ -150,6 +103,7 @@ class GetPutDelPolicyAPI(Resource):
 #      - Easy to change different policies for each API endpoint.             #
 #                                                                             #
 # --------------------------------------------------------------------------- #
+
 
 @ns_config.route('/config/group')
 @ns_config.response(404, 'Unable to find a group quota-limit configuration.')
@@ -214,6 +168,7 @@ class UserQuotaLimitConfigAPI(Resource):
 
 @ns_decrement.route('/decrement/group')
 @ns_decrement.response(429, 'Too many requests.')
+@ns_decrement.response(404, 'Not found')
 class GroupQuotaLimitDecrementAPI(Resource):
     """Quota Limit API to process a group quota-limit request.
 
@@ -231,8 +186,8 @@ class GroupQuotaLimitDecrementAPI(Resource):
     IETF QuotaLimit Header Fields:
     https://tools.ietf.org/id/draft-polli-quotalimit-headers-00.html
     """
-    @ns_decrement.marshal_with(limit_res_model, code=429)
-    @ns_decrement.marshal_with(limit_res_model, code=200)
+    @ns_decrement.marshal_with(decrement_res_model, code=429)
+    @ns_decrement.marshal_with(decrement_res_model, code=200)
     def get(self):
         """Reduce the number of quota remainings grouply"""
         return decrement_api.get()
@@ -240,6 +195,7 @@ class GroupQuotaLimitDecrementAPI(Resource):
 
 @ns_decrement.route('/decrement/users/<string:id>')
 @ns_decrement.response(429, 'Too many requests.')
+@ns_decrement.response(404, 'Not found')
 class UserQuotaLimitDecrementAPI(Resource):
     """Quota Limit API to process a user quota-limit request.
 
@@ -254,8 +210,8 @@ class UserQuotaLimitDecrementAPI(Resource):
     by reusing IdP. In the meantime, I have changed the type of ID from integer
     to string for considering scaling millions of users.
     """
-    @ns_decrement.marshal_with(limit_res_model, code=429)
-    @ns_decrement.marshal_with(limit_res_model, code=200)
+    @ns_decrement.marshal_with(decrement_res_model, code=429)
+    @ns_decrement.marshal_with(decrement_res_model, code=200)
     def get(self, id):
         """Reduce the number of quota remainings per user ID"""
         return decrement_api.get(id)
@@ -268,7 +224,7 @@ class QuotaLimitStatusAPI(Resource):
 
     It is routed to the endpoint of '{{FQDN}}/quotalimit-status'.
     """
-    @ns_status.marshal_with(limit_res_model, code=200)
+    @ns_status.marshal_with(decrement_res_model, code=200)
     def get(self):
         """Get list of remainig status of group/user quota-limiter"""
         return status_api.list()
@@ -281,7 +237,7 @@ class GroupQuotaLimitStatusAPI(Resource):
 
     It is routed to the endpoint of '{{FQDN}}/quotalimit-status/group'.
     """
-    @ns_status.marshal_with(limit_res_model, code=200)
+    @ns_status.marshal_with(decrement_res_model, code=200)
     def get(self):
         """Get a remainig status of group quota-limiter"""
         return status_api.get()
@@ -294,12 +250,12 @@ class UserQuotaLimitStatusAPI(Resource):
 
     It is routed to the endpoint of '{{FQDN}}/quotalimit-status/users/<int:id>'.
     """
-    @ns_status.marshal_with(limit_res_model, code=200)
+    @ns_status.marshal_with(decrement_res_model, code=200)
     def get(self, id):
         """Get a remainig status of a user's quota-limiter"""
         return status_api.get(id)
 
 
 if __name__ == '__main__':
-    port = int(environ.get("QUOTA_LIMITER_PORT", 12001))
+    port = int(environ.get("QUOTA_LIMITER_WITH_DB_PORT", 12002))
     app.run(debug=True, host='0.0.0.0', port=port)
