@@ -24,9 +24,9 @@ const API_ALL = 'A';
 /**
  * Common constants for quota type
  */
-const USER_QUOTA = 'USR';
-const GROUP_QUOTA = 'GRP';
-const GLOBAL_QUOTA = 'GLO';
+const USER = 'USR';
+const GROUP = 'GRP';
+const GLOBAL = 'GLO';
 
 /**
  * Common constants for quota limit-per (a.k.a. rate)
@@ -96,30 +96,34 @@ function _getExpiryTime(now, limitPer) {
 function validateQuota(r) {
 
     // Get and set user quota name
-    let userId = r.variables.jwt_claim_sub;
+    let userId = r.variables.x_user_id;
     let userQuotaName = '';
-    r.log('#### user ID: ' + userId);
-    if (r.variables.quota_enable_per_user_proxy === 1) {
-        userQuotaName = _getQuotaName(r, USER_QUOTA, userId, API_ALL);
+    if (r.variables.quota_enable_per_user_proxy && 
+        r.variables.quota_enable_per_user_proxy === '1') {
+        userQuotaName = _getQuotaName(r, USER, userId, API_ALL);
     }
-    switch(r.method) {
-        case 'GET':
-            if (r.variables.quota_enable_per_user_proxy_read === 1) {
-                userQuotaName = _getQuotaName(r, USER_QUOTA, userId, API_READ);
-            }
-            break;
-        case 'POST':
-        case 'PUT':
-        case 'DELETE':
-            if (r.variables.quota_enable_per_user_proxy_write === 1) {
-                userQuotaName = _getQuotaName(r, USER_QUOTA, userId, API_WRITE);
-            }
-    }
+    if (!userQuotaName) {
+        switch(r.method) {
+            case 'GET':
+                if (r.variables.quota_enable_per_user_proxy_read &&
+                    r.variables.quota_enable_per_user_proxy_read === '1') {
+                    userQuotaName = _getQuotaName(r, USER, userId, API_READ);
+                }
+                break;
+            case 'POST':
+            case 'PUT':
+            case 'DELETE':
+                if (r.variables.quota_enable_per_user_proxy_write &&
+                    r.variables.quota_enable_per_user_proxy_write === '1') {
+                    userQuotaName = _getQuotaName(r, USER, userId, API_WRITE);
+                }
+        }
+        }
     // Set keys of key-val zone to check quota-remaining
     if (userQuotaName !== '') {
         r.variables.user_quota_name = userQuotaName;
         r.variables.user_id_quota_name = userId + ':' + userQuotaName;
-        r.log('start validating quota-remaining for ' + userQuotaName);
+        r.log('validating quota-remaining: ' + r.variables.user_id_quota_name);
     }
 
     // Validate if quota remains on a user and proxy
@@ -148,12 +152,15 @@ function validateQuota(r) {
 //
 function decreaseQuota(r) {
     r.log('quota decrement for ' + r.variables.user_id_quota_name);
+    
+    // TODO: stand-alone quota decrement
     if (r.variables.user_quota_remaining) {
         r.variables.user_quota_remaining--;
         r.variables.user_quota_last_update = Date().getTime();
     }
     r.return(204);
 
+    // TODO: remote quota decrement
     // let uri = '/quotas/decrement/';
     // let key = r.variables.x_user_id + ':' + r.variables.proxy_name;
     // if (!r.variables.x_user_id) {
@@ -206,10 +213,15 @@ function _getQuotaName(r, quotaType, consumerId, apiMethod) {
     const proxyNameMethod = r.variables.proxy_name + ':' + apiMethod;
     const consumerProxyMethod = consumerId + ':' + proxyNameMethod;
     const quotaTypeProxyNameMethod = quotaType + ':' + proxyNameMethod;
-    if (consumerProxyMethod in r.variables.user_proxy_method) {
-        r.variables.user_proxy_method = consumerProxyMethod;
+
+    r.variables.user_proxy_method = consumerProxyMethod;
+    if (r.variables.quota_payment_method) {
         userQuotaName = quotaTypeProxyNameMethod + ':' + r.variables.quota_payment_method;
     }
+    // if (consumerProxyMethod in r.variables.user_proxy_method) {
+    //     r.variables.user_proxy_method = consumerProxyMethod;
+    //     userQuotaName = quotaTypeProxyNameMethod + ':' + r.variables.quota_payment_method;
+    // }
     // TODO: Get group/global quota name
     return userQuotaName;
 }
