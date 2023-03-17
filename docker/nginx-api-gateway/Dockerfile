@@ -185,7 +185,8 @@ COPY  services/nginx-api-gateway/ssl/nginx-repo.key /etc/controller-agent/config
 RUN    mkdir -p /etc/nginx/conf.d                           \
     && mkdir -p /etc/nginx/conf.d/oidc                      \
     && mkdir -p /usr/share/nginx/html/css                   \
-    && mkdir -p /var/lib/nginx/state                        \
+    && mkdir -p /var/lib/nginx/state/oidc                   \
+    && mkdir -p /var/lib/nginx/state/quota                  \
     && mkdir -p /etc/controller-agent/configurator/auxfiles \
     && mkdir -p /var/run/nginx-quota
 
@@ -194,6 +195,8 @@ VOLUME /etc/nginx
 RUN    chmod -R 644 /etc/nginx
 RUN    chmod -R 644 /etc/nginx/conf.d
 RUN    chmod -R 644 /etc/nginx/conf.d/oidc
+RUN    chmod -R 777 /var/lib/nginx/state/oidc
+RUN    chmod -R 777 /var/lib/nginx/state/quota
 
 # COPY (Nginx configuration) directory
 COPY  services/nginx-api-gateway/nginx/conf.d/   /etc/nginx/conf.d/
