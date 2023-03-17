@@ -1,6 +1,8 @@
 # nginx-api-quotas
 NGINX API Quotas Management Core Modules and Examples for NGINX API Gateway and API Connectivity Management
 
+![](./docs/img/nginx-api-quotas-flow.png)
+
 ## Use Cases
 There are 2 types of rate limiting - short term and long term (quotas), each with different use cases. Short term rate limits are focused on handling bursty traffic, protecting servers and infrastructure from being overwhelmed. Whereas long term quotas are used to measure a consumer’s usage of APIs over a longer period of time (per hour, day or month). Unlike short term rate limits, quotas are not designed to prevent a spike from overwhelming the API service. They are used to regulate API usage ensuring API consumers honor the terms of contract.  
 

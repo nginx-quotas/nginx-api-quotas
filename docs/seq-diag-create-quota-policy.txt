@@ -1,0 +1,42 @@
+title API Quotas Policy Creation
+
+actor #blue:0.5 API Owner
+actor #blue:0.5 API Consumer
+participant #green:0.5 ACM UI #lightgreen
+control #green:1 ACM N+ #green
+participant #green:0.5 ACM API #lightgreen
+database #green:0.5 ACM DB #lightgreen
+participant #black:0.5 DPM #white
+control #green:1 API-GW N+ #green
+participant #blue:0.5 Quotas API #lightblue
+database #blue:0.5 Quotas Data #lightblue
+control IDP
+database IDP DB
+
+activecolor ACM N+ #green
+activecolor ACM UI #lightgreen
+activecolor ACM API #lightgreen
+activecolor ACM DB #lightgreen
+activecolor API-GW N+ #green
+activecolor Quotas API #lightblue
+activecolor Quotas Data #lightblue
+
+API Owner -> ACM UI: create a quota policy \n<color:#gray>(prerequisite: create proxy)
+
+activate ACM UI
+ACM UI -> ACM API:POST/PUT/PATCH */policies/\n <color:#blue>(type: global, group, user, \n  proxy-name(optional),api-method,\n  pay-method, quota-limit, limit-per)
+
+activate ACM API
+ACM API -> DPM: config request
+
+activate DPM
+ACM API -> ACM DB: store policy
+DPM -> API-GW N+: config\npolicy map
+DPM -> ACM API: result
+deactivate DPM
+
+ACM API -> ACM DB: store status
+deactivate ACM API
+
+deactivate ACM UI
+

@@ -42,6 +42,17 @@ const HOUR_SEC = 3600;
 const DAY_SEC = 86400;
 const MON_SEC = 2678400; // 31 days
 
+
+/**
+ * Get a quota policy
+ *
+ * @param r {Request} HTTP request object
+ * @returns quota policy {object} quota policy object
+ */
+function getQuotaPolicy(r) {
+
+}
+
 /**
  * Set quota limit on a user per proxy in key/val zone
  *
@@ -77,7 +88,8 @@ function setUserQuotaLimit(
  *
  * @param r {long} start time
  * @returns {int} HTTP response
- */
+ * @private
+*/
 function _getExpiryTime(now, limitPer) {
     switch(limitPer) {
         case REQ_HOUR: return now + HOUR_SEC;
@@ -189,6 +201,7 @@ function decreaseQuota(r) {
  *
  * @param r {Request} HTTP request object
  * @returns {string} quota payment method
+ * @private
  */
 function _setHeadersOut(r, now) {
     r.headersOut['X-User-Quota-Policy'] = r.variables.user_id_quota_name;
@@ -207,6 +220,7 @@ function _setHeadersOut(r, now) {
  * @param consumerId {string} user-id, group-id, or global-id
  * @param apiMethod {string} api-method
  * @returns {string} quota payment method
+ * @private
  */
 function _getQuotaName(r, quotaType, consumerId, apiMethod) {
     let userQuotaName = '';
