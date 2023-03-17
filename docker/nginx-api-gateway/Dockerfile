@@ -194,7 +194,6 @@ VOLUME /etc/nginx
 RUN    chmod -R 644 /etc/nginx
 RUN    chmod -R 644 /etc/nginx/conf.d
 RUN    chmod -R 644 /etc/nginx/conf.d/oidc
-RUN    chmod -R 666 /var/run/nginx-quota
 
 # COPY (Nginx configuration) directory
 COPY  services/nginx-api-gateway/nginx/conf.d/   /etc/nginx/conf.d/
