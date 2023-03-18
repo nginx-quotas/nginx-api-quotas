@@ -7,7 +7,9 @@ NGINX API Quotas Management Core Modules and Examples for NGINX API Gateway and 
 - [Workflow](#workflow)
   - [Setting Quotas Per Proxy Level](#setting-quotas-per-proxy-level)
   - [Setting Quotas Per User Level](#setting-quotas-per-user-level)
-  - [Setting Quotas Per User Group Level](#setting-quotas-per-group-level)
+  - [Setting Quotas Per User Group Level](#setting-quotas-per-user-group-level)
+  - [API Quota Validation & Decrement Flow (Sync)](#api-quota-validation--decrement-flow-sync)
+  - [API Quota Validation & Decrement Flow (Async)](#api-quota-validation--decrement-flow-async)
 
 ## Use Cases
 There are 2 types of rate limiting - short term and long term (quotas), each with different use cases. Short term rate limits are focused on handling bursty traffic, protecting servers and infrastructure from being overwhelmed. Whereas long term quotas are used to measure a consumer’s usage of APIs over a longer period of time (per hour, day or month). Unlike short term rate limits, quotas are not designed to prevent a spike from overwhelming the API service. They are used to regulate API usage ensuring API consumers honor the terms of contract.  
@@ -30,7 +32,16 @@ NMS-ACM users want both short term and long term rate limiting. With quota manag
 ![](./docs/img/set-quota-per-user.png)
 
 ### Setting Quotas Per User Group Level
+
 ![](./docs/img/set-quota-per-group.png)
+
+### API Quota Validation & Decrement Flow (Sync)
+
+![](./docs/img/quota-validation-decrement-flow-sync.png)
+
+### API Quota Validation & Decrement Flow (Async)
+
+![](./docs/img/quota-validation-decrement-flow-async.png)
 
 ## Story
 API Owners want to limit the number of requests a user can make. They want to set quotas on users and instruct the API gateway to reject requests when the quota limit is reached. 
