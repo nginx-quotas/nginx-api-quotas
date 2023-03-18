@@ -68,6 +68,10 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 
 ![](./docs/img/quota-validation-decrement-flow-async.png)
 
+### Out of Scopes
+
+- [NGINX Serverless Payment Gateway](https://github.com/nginx-payment-connect)
+- [NGINX BYO Payment Gateway](https://github.com/nginx-payment-connect/nginx-byo-pay)
 
 ## References
 - [How to Set Quotas with NGINX Plus](https://www.youtube.com/watch?v=hqqOsXTG2L8)
