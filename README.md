@@ -22,33 +22,11 @@ NMS-ACM users want both short term and long term rate limiting. With quota manag
 - Enforce API terms of service (ToS) 
 
 ## Workflow
-
-### Setting Quotas Per Proxy Level
-
-![](./docs/img/set-quota-per-proxy.png)
-
-### Setting Quotas Per User Level
-
-![](./docs/img/set-quota-per-user.png)
-
-### Setting Quotas Per User Group Level
-
-![](./docs/img/set-quota-per-group.png)
-
-### API Quota Validation & Decrement Flow (Sync)
-
-![](./docs/img/quota-validation-decrement-flow-sync.png)
-
-### API Quota Validation & Decrement Flow (Async)
-
-![](./docs/img/quota-validation-decrement-flow-async.png)
-
-## Story
 API Owners want to limit the number of requests a user can make. They want to set quotas on users and instruct the API gateway to reject requests when the quota limit is reached. 
 
 Quota is similar to rate limit but have longer periods. Example user can have 10,000 requests to the API per month. 
 
-**Summary of features:**
+**Summary of workflow:**
 
 1. API owner can set the quota on a per user basis
 
@@ -69,6 +47,26 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 > **Notes:**
 > 
 > Checking for quota is expensive. Maintaining counters for each user is even more expensive. Suggest to look into event driven approach
+
+### Setting Quotas Per Proxy Level
+
+![](./docs/img/set-quota-per-proxy.png)
+
+### Setting Quotas Per User Level
+
+![](./docs/img/set-quota-per-user.png)
+
+### Setting Quotas Per User Group Level
+
+![](./docs/img/set-quota-per-group.png)
+
+### API Quota Validation & Decrement Flow (Sync)
+
+![](./docs/img/quota-validation-decrement-flow-sync.png)
+
+### API Quota Validation & Decrement Flow (Async)
+
+![](./docs/img/quota-validation-decrement-flow-async.png)
 
 
 ## References
