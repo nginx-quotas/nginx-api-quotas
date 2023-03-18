@@ -63,3 +63,4 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 ## References
 - [How to Set Quotas with NGINX Plus](https://www.youtube.com/watch?v=hqqOsXTG2L8)
 - [Shared Caches with NGINX Plus Cache Clusters, Part1](https://www.nginx.com/blog/shared-caches-nginx-plus-cache-clusters-part-1/)
+- [Thread Pools in NGINX Boost Performance 9x!](https://www.nginx.com/blog/thread-pools-boost-performance-9x/)
