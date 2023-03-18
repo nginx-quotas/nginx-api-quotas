@@ -6,6 +6,8 @@ NGINX API Quotas Management Core Modules and Examples for NGINX API Gateway and 
 - [Use Case](#use-cases)
 - [Workflow](#workflow)
   - [Setting Quotas Per Proxy Level](#setting-quotas-per-proxy-level)
+  - [Setting Quotas Per User Level](#setting-quotas-per-user-level)
+  - [Setting Quotas Per User Group Level](#setting-quotas-per-group-level)
 
 ## Use Cases
 There are 2 types of rate limiting - short term and long term (quotas), each with different use cases. Short term rate limits are focused on handling bursty traffic, protecting servers and infrastructure from being overwhelmed. Whereas long term quotas are used to measure a consumer’s usage of APIs over a longer period of time (per hour, day or month). Unlike short term rate limits, quotas are not designed to prevent a spike from overwhelming the API service. They are used to regulate API usage ensuring API consumers honor the terms of contract.  
@@ -23,12 +25,19 @@ ACM customers want both short term and long term rate limiting. With quota manag
 
 ![](./docs/img/set-quota-per-proxy.png)
 
+### Setting Quotas Per User Level
+
+![](./docs/img/set-quota-per-user.png)
+
+### Setting Quotas Per User Group Level
+![](./docs/img/set-quota-per-group.png)
+
 ## Story
 Customers want to limit the number of requests a user can make. They want to set quotas on users and instruct the API gateway to reject requests when the quota limit is reached. 
 
 Quota is similar to rate limit but have longer periods. Example user can have 10,000 requests to the API per month. 
 
-**Summary of the work:**
+**Summary of features:**
 
 1. API owner can set the quota on a per user basis
 
