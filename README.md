@@ -75,6 +75,8 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 
 ## APIs
 
+![](./docs/img/acm-api-proxy-quotas.png)
+
 ## Capacity Estimation
 
 This estimate focuses on API gateway for the quota validation and decrement. Find the following recommendation of when to use standalone or distributed cache/storage:
