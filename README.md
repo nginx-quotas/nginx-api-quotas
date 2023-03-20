@@ -11,6 +11,9 @@ NGINX API Quotas Management Core Modules and Examples for NGINX API Gateway and 
   - [API Quota Validation & Decrement Flow (Sync)](#api-quota-validation--decrement-flow-sync)
   - [API Quota Validation & Decrement Flow (Async)](#api-quota-validation--decrement-flow-async)
 - [Capacity Estimation](#capacity-estimation)
+  - [Standalone Quotas Cache/Storage](#standalone-quotas-cachestorage)
+  - [Distributed Quotas Cache/Storage](#distributed-quotas-cachestorage)
+
 
 ## Use Cases
 There are 2 types of rate limiting - short term and long term (quotas), each with different use cases. Short term rate limits are focused on handling bursty traffic, protecting servers and infrastructure from being overwhelmed. Whereas long term quotas are used to measure a consumer’s usage of APIs over a longer period of time (per hour, day or month). Unlike short term rate limits, quotas are not designed to prevent a spike from overwhelming the API service. They are used to regulate API usage ensuring API consumers honor the terms of contract.  
@@ -76,26 +79,28 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 
 ## Capacity Estimation
 
-This estimate focuses on API gateway for the quota validation and decrement. Find the following information when to use standalone or distributed cache/storage:
-- **Standalone cache/storage:** 
-  - **Use cases when :**
-    - number of proxies: 1K ~ 10K
-    - number of quotas: 15K ~ 150K
-    - number of consumers: ~ 100K
-    - number of concurrent requests: 1 ~ 1024ea
-  - **System specification recommendation:**
-    - memory: 30GB ~ 300GB
-    - storage: 30GB ~ 300GB
-    - network: 20Mbps ~ 200Mbps
-- **Distributed cache/storage:** 
-  - **Use cases when :**
-    - number of proxies: over 10K
-    - number of quotas: over 150K
-    - number of consumers: over 100K
-    - number of concurrent requests: over 1024ea
-  - **System specification recommendation:**
-    - Use distribute cache/storage machines
-    - memory, storage, network : upto the following estimation
+This estimate focuses on API gateway for the quota validation and decrement. Find the following recommendation of when to use standalone or distributed cache/storage:
+
+### Standalone Quotas Cache/Storage
+- **Use cases when :**
+  - number of proxies: 1K ~ 10K
+  - number of quotas: 15K ~ 150K
+  - number of consumers: ~ 100K
+  - number of concurrent requests: 1 ~ 1024ea
+- **System specification recommendation:**
+  - memory: 30GB ~ 300GB
+  - storage: 30GB ~ 300GB
+  - network: 20Mbps ~ 200Mbps
+
+### Distributed Quotas Cache/Storage
+- **Use cases when :**
+  - number of proxies: over 10K
+  - number of quotas: over 150K
+  - number of consumers: over 100K
+  - number of concurrent requests: over 1024ea
+- **System specification recommendation:**
+  - Use distribute cache/storage machines
+  - memory, storage, network : upto the following estimation
 
 ![](./docs/img/capacity-estimation-summary.png)
 
