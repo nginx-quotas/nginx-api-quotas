@@ -5,11 +5,11 @@ NGINX API Quotas Management Core Modules and Examples for NGINX API Gateway and 
 
 - [Use Cases](#use-cases)
 - [Workflow](#workflow)
-  - [Setting Quotas Per Proxy Level](#setting-quotas-per-proxy-level)
-  - [Setting Quotas Per User Level](#setting-quotas-per-user-level)
-  - [Setting Quotas Per User Group Level](#setting-quotas-per-user-group-level)
+  - [Setting Quotas on User Basis](#setting-quotas-on-user-basis)
+  - [Setting Quotas on Client ID Basis](#setting-quotas-on-client-id-basis)
   - [API Quota Validation & Decrement Flow (Sync)](#api-quota-validation--decrement-flow-sync)
   - [API Quota Validation & Decrement Flow (Async)](#api-quota-validation--decrement-flow-async)
+- [APIs](#apis)
 - [Capacity Estimation](#capacity-estimation)
   - [Standalone Quotas Cache/Storage](#standalone-quotas-cachestorage)
   - [Distributed Quotas Cache/Storage](#distributed-quotas-cachestorage)
@@ -52,17 +52,13 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 > 
 > Checking for quota is expensive. Maintaining counters for each user is even more expensive. Suggest to look into event driven approach
 
-### Setting Quotas Per Proxy Level
-
-![](./docs/img/set-quota-per-proxy.png)
-
-### Setting Quotas Per User Level
+### Setting Quotas on User Basis
 
 ![](./docs/img/set-quota-per-user.png)
 
-### Setting Quotas Per User Group Level
+### Setting Quotas on Client ID Basis
 
-![](./docs/img/set-quota-per-group.png)
+![](./docs/img/set-quota-per-client-id.png)
 
 ### API Quota Validation & Decrement Flow (Sync)
 
@@ -76,6 +72,8 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 
 - [NGINX Serverless Payment Gateway](https://github.com/nginx-payment-connect)
 - [NGINX BYO Payment Gateway](https://github.com/nginx-payment-connect/nginx-byo-pay)
+
+## APIs
 
 ## Capacity Estimation
 
@@ -104,8 +102,5 @@ This estimate focuses on API gateway for the quota validation and decrement. Fin
 
 ![](./docs/img/capacity-estimation-summary.png)
 
-
-## References
-- [How to Set Quotas with NGINX Plus](https://www.youtube.com/watch?v=hqqOsXTG2L8)
-- [Shared Caches with NGINX Plus Cache Clusters, Part1](https://www.nginx.com/blog/shared-caches-nginx-plus-cache-clusters-part-1/)
-- [Thread Pools in NGINX Boost Performance 9x!](https://www.nginx.com/blog/thread-pools-boost-performance-9x/)
+## Misc.
+- [Additional Considerations](./docs/nginx-quota-limit.md)
