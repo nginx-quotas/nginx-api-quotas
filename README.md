@@ -73,6 +73,11 @@ Quota is similar to rate limit but have longer periods. Example user can have 10
 - [NGINX Serverless Payment Gateway](https://github.com/nginx-payment-connect)
 - [NGINX BYO Payment Gateway](https://github.com/nginx-payment-connect/nginx-byo-pay)
 
+## Capacity Estimation
+
+![](./docs/img/capacity-estimation-summary.png)
+
+
 ## References
 - [How to Set Quotas with NGINX Plus](https://www.youtube.com/watch?v=hqqOsXTG2L8)
 - [Shared Caches with NGINX Plus Cache Clusters, Part1](https://www.nginx.com/blog/shared-caches-nginx-plus-cache-clusters-part-1/)
