@@ -28,6 +28,9 @@ watch:
 down:
 	docker-compose down
 
+down-01:
+	docker-compose -f docker-compose-example-01.yml down
+
 clean: 
 	docker kill $$(docker ps -q) 2> /dev/null || true
 	docker system prune -a
