@@ -184,7 +184,7 @@ RUN    mkdir -p /etc/nginx/conf.d                           \
     && mkdir -p /etc/nginx/oidc                             \
     && mkdir -p /etc/nginx/quota                            \
     && mkdir -p /etc/nginx/status                           \
-    && mkdir -p /usr/share/nginx/html/css                   \
+    && mkdir -p /usr/share/nginx/quota/css                  \
     && mkdir -p /var/lib/nginx/state/oidc                   \
     && mkdir -p /var/lib/nginx/state/quota                  \
     && mkdir -p /etc/controller-agent/configurator/auxfiles \
@@ -206,7 +206,7 @@ COPY  common/etc/nginx/oidc/      /etc/nginx/oidc/
 COPY  common/etc/nginx/status/    /etc/nginx/status/
 
 COPY  common/quota-core/          /etc/nginx/quota/
-COPY  common/quota-simulator/     /usr/share/nginx/html/
+COPY  common/quota-simulator/     /usr/share/nginx/quota/
 
 COPY  examples/01-standalone-quota/service/etc/nginx/conf.d/   /etc/nginx/conf.d/
 

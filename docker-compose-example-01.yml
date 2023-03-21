@@ -23,4 +23,4 @@ services:
         target: /etc/nginx/conf.d/
       - type: bind
         source: ./common/quota-simulator/
-        target: /usr/share/nginx/html/
+        target: /usr/share/nginx/quota/
