@@ -102,6 +102,9 @@ This estimate focuses on API gateway for the quota validation and decrement. Fin
   - Use distribute cache/storage machines
   - memory, storage, network : upto the following estimation
 
+> **Note**: This doesn't include application's API data to focus on quota data capacity so that you would need to additionally estimate your business data to determine the system specification.
+
+
 ![](./docs/img/capacity-estimation-summary.png)
 
 ## Misc.

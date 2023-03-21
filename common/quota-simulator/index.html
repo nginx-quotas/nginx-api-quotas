@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>NGINX Quota Limit Test</title>
+
+  <link rel="icon" href="favicon-48x48.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="css/normalize.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/json-viewer.css">
+  <script src="json-viewer.js"></script>
+  <script src="index.js" defer></script>
+</head>
+
+<body>
+  <div class="sr-root">
+    <div class="sr-main">
+      <section class="container">
+        <div>
+          <h1>NGINX Quota Limit Test</h1>
+
+          <div class="pasha-image">
+            <img src="https://picsum.photos/280/320?random=4" width="320" height="160" />
+          </div>
+        </div><br>
+        <button type="submit" id="signin">Sign in</button>
+
+        <br>
+        <h4>Enter a group quota limit (rps):</h4>
+        <input type="int" id="group-quota-limit" value=1 name="group-quota-limit" />
+        <button type="submit" id="put-group-limit">Configure a group quota limit</button>
+        <button type="submit" id="del-group-limit">Remove a group quota limit</button><br>
+
+        <br>
+        <h4>Enter a user quota limit (rps):</h4>
+        <input type="int" id="user-quota-limit" value=1 name="user-quota-limit" />
+        <button type="submit" id="put-user-limit">Configure a user quota limit</button>
+        <button type="submit" id="del-user-limit">Remove a user quota limit</button><br>
+
+        <br>
+        <h4>Test quota-limit by API requests:</h4>
+        <button type="submit" id="upload-image">Upload an image file</button>
+        <button type="submit" id="download-image">Dummy API request by attacker</button>
+
+        <br>
+        <h4>Test Result:</h4>
+        <input type="text" id="message" value="Guest" name="message" /><br>
+        <div class="sr-callout">
+          <pre></pre>
+          <div id="json"></div>
+        </div>
+      </section>
+      <div id="error-message"></div>
+    </div>
+  </div>
+</body>
+
+</html>

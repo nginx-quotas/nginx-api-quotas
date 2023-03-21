@@ -16,6 +16,9 @@ export INTEGRATION_TEST_PATH
 start:
 	docker-compose up -d
 
+start-01:
+	docker-compose -f docker-compose-example-01.yml up -d
+
 ps:
 	docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Ports}}\t{{.Names}}"
 

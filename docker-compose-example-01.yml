@@ -1,0 +1,26 @@
+version: '2.2'
+
+services:
+  nginx-standalone-quota:
+    container_name: nginx-standalone-quota
+    build:
+      context: ./
+      dockerfile: ./examples/01-standalone-quota/docker/Dockerfile
+    image: nginx-standalone-quota
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - type: bind
+        source: ./common/etc/nginx/oidc/
+        target: /etc/nginx/oidc/
+      - type: bind
+        source: ./common/quota-core/
+        target: /etc/nginx/quota/
+      - type: bind
+        source: ./examples/01-standalone-quota/service/etc/nginx/conf.d/
+        target: /etc/nginx/conf.d/
+      - type: bind
+        source: ./common/quota-simulator/
+        target: /usr/share/nginx/html/
