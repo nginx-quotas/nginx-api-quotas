@@ -49,8 +49,10 @@ const MON_SEC = 2678400; // 31 days
 const POSTFIX_QUOTA = 'quota';
 const POSTFIX_PERIOD = 'quota_period';
 const POSTFIX_EXP = 'quota_exp';
-const POSTFIX_REMAINING = 'quota_remaining'
+const POSTFIX_REMAINING = 'quota_remaining';
 
+const NGINX_PLUS_HOST_PORT = 'http://localhost:8080';
+const NGINX_PLUS_KEY_VAL_URI = '/api/7/http/keyvals/';
 
 /**
  * Get a quota policy
@@ -121,20 +123,62 @@ async function validateQuota(r) {
     const consumerType = userId !== '' ? USER : CLN
     const zoneNameRemaining = _getZoneName(r, consumerType, POSTFIX_REMAINING);
 
-    r.log('##### validate quota for : ' + consumerId);
-    r.log('      1.2 zoneNameRemaining: ' + zoneNameRemaining);
-
     // Get quota remaining from the key/value store in the quota zone
-    let res;
+    r.log('start validating quota-remaining: ' + consumerId + 'in ' + zoneNameRemaining);
+    let res = 0;
     try {
-        res = await get_keyval(r, zoneNameRemaining, consumerId);
+        res = await _getValWithKey(r, zoneNameRemaining, consumerId);
     } catch (e) {
-        r.error('Could not get consumer quota remaining: ' + JSON.stringify(e));
-        r.return(500);
+        r.error('quota remaining not found: ' + e);
+        r.return(404);
         return;
     }
-    r.variables.quota_remaining = res;
-    r.log(" quota remaining: " + r.variables.quota_remaining)
+    let data = res.split(',');
+    r.variables.quota_remaining = data[0].trim();
+    r.variables.quota_exp = data[1].trim();
+    r.log(" quota remaining: " + r.variables.quota_remaining);
+    r.log(" quota expiry: " + r.variables.quota_exp);
+
+    // Get quota expiry time from the key/value store in the quota zone
+
+    // Validate quota-remaining
+    let now = r.variables.time_local;
+    r.log("now : " + now);
+    r.return(200);
+    return;
+    // if (quotaRemaining > 0) {
+    //     if (r.variables.user_quota_expiry_time > now) {
+    //         r.error(msgPrefix + 'expired');
+    //         // TODO: reset quota limit with new start time unless quota is disabled.
+    //         _setHeadersOut(r, now);
+    //         r.return(403);
+    //         return;
+    //     }
+    //     r.return(204);
+    // } else {
+    //     r.error(msgPrefix + 'exhausted');
+    //     _setHeadersOut(r, now);
+    //     r.return(403);
+    // }
+
+    // if (!r.variables.user_quota_remaining) {
+    //     r.error(msgPrefix + 'not found')
+    //     r.return(401);
+    // } else if (r.variables.quota_remaining > 0) {
+    //     if (r.variables.user_quota_expiry_time > now) {
+    //         r.error(msgPrefix + 'expired');
+    //         // TODO: reset quota limit with new start time unless quota is disabled.
+    //         _setHeadersOut(r, now);
+    //         r.return(403);
+    //         return;
+    //     }
+    //     r.return(204);
+    // } else {
+    //     r.error(msgPrefix + 'exhausted');
+    //     _setHeadersOut(r, now);
+    //     r.return(403);
+    // }
+
 
     // // Get and set user quota name
     // let userQuotaName = '';
@@ -300,7 +344,7 @@ function _getZoneName(r, consumerType, postFix) {
 
 async function create_keyval(r, zoneName) {
     let method = r.args.method ? r.args.method : 'POST';
-    let res = await r.subrequest('/api/7/http/keyvals/' + zoneName,
+    let res = await r.subrequest(NGINX_PLUS_KEY_VAL_URI + zoneName,
                                  { method, body: r.requestBody});
 
     if (res.status >= 300) {
@@ -316,7 +360,7 @@ async function set_keyval(r, zoneName, key, val) {
     let method = r.args.method ? r.args.method : 'PATCH';
     let queryParam = '?{'.concat(key, ':', val, '}');
     let res = await r.subrequest(
-        '/api/7/http/keyvals/' + zoneName + '?{' + queryParam,
+        NGINX_PLUS_KEY_VAL_URI + zoneName + '?{' + queryParam,
         {method}
     );
 
@@ -327,42 +371,32 @@ async function set_keyval(r, zoneName, key, val) {
     r.return(200);
 }
 
-async function get_keyval(r, zoneName, keyName) {
-    const host = 'http://localhost:8080'
-    const uri = '/api/7/http/keyvals/' + zoneName;
+/**
+ * Get value from key/value store
+ *
+ * @param r {Request} HTTP request object
+ * @param zoneName {string} zone name (e.g., quota zone)
+ * @param keyName {string} key of k/v store (e.g., sub, client-id per api key)
+ * @param apiMethod {string} api-method
+ * @returns value {string} value of k/v store
+ * @private
+ */
+async function _getValWithKey(r, zoneName, keyName) {
+    const uri = NGINX_PLUS_KEY_VAL_URI + zoneName;
     const queryParam = '?key=' + keyName;
-    r.log('#### start getting key/val : ' + host+uri+queryParam);
 
-    let resp = await ngx.fetch(host + uri + queryParam);
+    let resp = await ngx.fetch(NGINX_PLUS_HOST_PORT + uri + queryParam);
     if (!resp.ok) {
         throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
     }
-    r.log(' resp status for ' + keyName + ' : ' + resp.ok);
-
     const data = await resp.json();
-    r.log(' resp json : ' + JSON.stringify(data));
-    r.log(' val : ' + data[keyName]);
     return data[keyName];
-    // return data[keyName];
-
-    // let method = r.args.method ? r.args.method : 'GET';
-    // let res = await r.subrequest(
-    //     '/api/7/http/keyvals/' + zoneName + '?key=' + keyName,
-    //     { method }
-    // );
-
-    // if (res.status >= 300) {
-    //     r.return(res.status, res.responseBody);
-    //     return;
-    // }
-    // r.return(200, res.responseBody);
 }
 
 export default {
     decreaseQuota,
     setUserQuotaLimit,
     create_keyval,
-    get_keyval,
     set_keyval,
     validateQuota
 }
