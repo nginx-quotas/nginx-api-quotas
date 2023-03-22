@@ -144,9 +144,8 @@ async function validateQuota(r) {
     // Validate quota-remaining
     let now = r.variables.time_local;
     r.log("now : " + now);
-    r.return(200);
-    return;
-    // if (quotaRemaining > 0) {
+    let msgPrefix = 'quota for ' + consumerId + ': ';
+    if (r.variables.quota_remaining > 0) {
     //     if (r.variables.user_quota_expiry_time > now) {
     //         r.error(msgPrefix + 'expired');
     //         // TODO: reset quota limit with new start time unless quota is disabled.
@@ -154,12 +153,12 @@ async function validateQuota(r) {
     //         r.return(403);
     //         return;
     //     }
-    //     r.return(204);
-    // } else {
-    //     r.error(msgPrefix + 'exhausted');
-    //     _setHeadersOut(r, now);
-    //     r.return(403);
-    // }
+        r.return(204);
+    } else {
+        r.error(msgPrefix + 'exhausted');
+        _setHeadersOut(r, now);
+        r.return(403);
+    }
 
     // if (!r.variables.user_quota_remaining) {
     //     r.error(msgPrefix + 'not found')
@@ -276,10 +275,10 @@ function decreaseQuota(r) {
  * @private
  */
 function _setHeadersOut(r, now) {
-    r.headersOut['X-User-Quota-Policy'] = r.variables.user_id_quota_name;
-    r.headersOut['X-User-Quota-Limit'] = r.variables.user_quota_limit;
-    r.headersOut['X-User-Quota-Remaining'] = r.variables.user_quota_remaining;
-    r.headersOut['X-User-Quota-Reset'] = r.variables.user_quota_expiry_time - now;
+    // r.headersOut['X-User-Quota-Policy'] = r.variables.user_id_quota_name;
+    r.headersOut['X-User-Quota'] = r.variables.quota;
+    r.headersOut['X-User-Quota-Remaining'] = r.variables.quota_remaining;
+    r.headersOut['X-User-Quota-Reset'] = r.variables.quota_ext - now;
     // r.headersOut['X-Group-Quota-Limit'] = r.variables.group_quota_limit;
     // r.headersOut['X-Group-Quota-Remaining'] = r.variables.group_quota_remaining;
 }
