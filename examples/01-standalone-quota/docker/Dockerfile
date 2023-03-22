@@ -196,8 +196,12 @@ RUN    chmod -R 644 /etc/nginx
 RUN    chmod -R 644 /etc/nginx/conf.d
 RUN    chmod -R 644 /etc/nginx/oidc
 RUN    chmod -R 644 /etc/nginx/quota
-RUN    chmod -R 777 /var/lib/nginx/state/oidc
-RUN    chmod -R 777 /var/lib/nginx/state/quota
+
+RUN    chown -R nginx:nginx /var/lib/nginx/state/oidc
+RUN    chmod -R 744         /var/lib/nginx/state/oidc
+RUN    chown -R nginx:nginx /var/lib/nginx/state/quota
+RUN    chmod -R 744         /var/lib/nginx/state/quota
+
 
 # COPY (Nginx configuration) directory
 COPY  common/etc/nginx/           /etc/nginx/
