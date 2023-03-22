@@ -205,7 +205,6 @@ RUN    chmod -R 744         /var/lib/nginx/state/quota
 
 # COPY (Nginx configuration) directory
 COPY  common/etc/nginx/           /etc/nginx/
-COPY  common/etc/nginx/frontend/  /etc/nginx/frontend/
 COPY  common/etc/nginx/oidc/      /etc/nginx/oidc/
 COPY  common/etc/nginx/status/    /etc/nginx/status/
 
