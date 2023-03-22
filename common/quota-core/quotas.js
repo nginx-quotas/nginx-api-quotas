@@ -19,18 +19,18 @@
  */
 const API_READ = 'R';
 const API_WRITE = 'W';
-const API_ALL = 'A';
 
 /**
  * Common constants for quota type
  */
-const USER = 'USR';
-const GROUP = 'GRP';
-const GLOBAL = 'GLO';
+const USER = 'usr';
+const CLN = 'cln'; // for client.id per API key
+const GLOBAL = 'glo';
 
 /**
  * Common constants for quota limit-per (a.k.a. rate)
  */
+const REQ_MIN = 'r/m';
 const REQ_HOUR = 'r/h';
 const REQ_DAY = 'r/D';
 const REQ_MON = 'r/M';
@@ -38,6 +38,7 @@ const REQ_MON = 'r/M';
 /**
  * Common constants for seconds per quata limit rate
  */
+const MIN_SEC = 60;
 const HOUR_SEC = 3600;
 const DAY_SEC = 86400;
 const MON_SEC = 2678400; // 31 days
@@ -67,17 +68,17 @@ function getQuotaPolicy(r) {
  */
 function setUserQuotaLimit(
     r, quotaType, userId, proxyName, apiMethod, paymentMethod, quotaLimit, limitPer) {
-    let userQuotaName = ''.concat(
-        quotaType, ':', proxyName, ':', apiMethod, ':', paymentMethod
-    );
+    // let userQuotaName = ''.concat(
+    //     quotaType, ':', proxyName, ':', apiMethod, ':', paymentMethod
+    // );
 
-    // Write quota limit on a user per proxy in key/value store
-    let now = r.variables.time_local;
-    r.variables.user_id_quota_name = userId + ':' + userQuotaName;
-    r.variables.user_quota_limit = quotaLimit;
-    r.variables.user_quota_remaining = quotaLimit;
-    r.variables.user_quota_start_time = now;
-    r.variables.user_quota_expiry_time = _getExpiryTime(now, limitPer);
+    // // Write quota limit on a user per proxy in key/value store
+    // let now = r.variables.time_local;
+    // r.variables.user_id_quota_name = userId + ':' + userQuotaName;
+    // r.variables.user_quota_limit = quotaLimit;
+    // r.variables.user_quota_remaining = quotaLimit;
+    // r.variables.user_quota_start_time = now;
+    // r.variables.user_quota_expiry_time = _getExpiryTime(now, limitPer);
 
     // TODO: write quota limit on a user per proxy in remote data store
     r.return(201);
@@ -106,58 +107,71 @@ function _getExpiryTime(now, limitPer) {
  * @returns {int} HTTP response
  */
 function validateQuota(r) {
-
-    // Get and set user quota name
+    // Generate zone name to find quota meta and status
     let userId = r.variables.x_user_id;
-    let userQuotaName = '';
-    if (r.variables.quota_enable_per_user_proxy && 
-        r.variables.quota_enable_per_user_proxy === '1') {
-        userQuotaName = _getQuotaName(r, USER, userId, API_ALL);
-    }
-    if (!userQuotaName) {
-        switch(r.method) {
-            case 'GET':
-                if (r.variables.quota_enable_per_user_proxy_read &&
-                    r.variables.quota_enable_per_user_proxy_read === '1') {
-                    userQuotaName = _getQuotaName(r, USER, userId, API_READ);
-                }
-                break;
-            case 'POST':
-            case 'PUT':
-            case 'DELETE':
-                if (r.variables.quota_enable_per_user_proxy_write &&
-                    r.variables.quota_enable_per_user_proxy_write === '1') {
-                    userQuotaName = _getQuotaName(r, USER, userId, API_WRITE);
-                }
-        }
-        }
-    // Set keys of key-val zone to check quota-remaining
-    if (userQuotaName !== '') {
-        r.variables.user_quota_name = userQuotaName;
-        r.variables.user_id_quota_name = userId + ':' + userQuotaName;
-        r.log('validating quota-remaining: ' + r.variables.user_id_quota_name);
-    }
-
-    // Validate if quota remains on a user and proxy
-    let now = r.variables.time_local;
-    let msgPrefix = '[quota : ' + userQuotaName + '] ';
-    if (!r.variables.user_quota_remaining) {
-        r.error(msgPrefix + 'not found')
-        r.return(401);
-    } else if (r.variables.quota_remaining > 0) {
-        if (r.variables.user_quota_expiry_time > now) {
-            r.error(msgPrefix + 'expired');
-            // TODO: reset quota limit with new start time unless quota is disabled.
-            _setHeadersOut(r, now);
-            r.return(403);
-            return;
-        }
-        r.return(204);
+    let zoneNameQuotaMeta = '';
+    let zoneNameRemaining = '';
+    if (userId !== '') {
+        zoneNameQuotaMeta = _getZoneName(r, USER, false);
+        zoneNameRemaining = _getZoneName(r, USER, true);
     } else {
-        r.error(msgPrefix + 'exhausted');
-        _setHeadersOut(r, now);
-        r.return(403);
+        zoneNameQuotaMeta = _getZoneName(r, CLN, false);
+        zoneNameRemaining = _getZoneName(r, CLN, true);
     }
+    r.log('##### validate quota: ');
+    r.log('         zoneNameQuotaMeta: ' + zoneNameQuotaMeta);
+    r.log('         zoneNameRemaining: ' + zoneNameRemaining);
+
+    // // Get and set user quota name
+    // let userQuotaName = '';
+    // if (r.variables.quota_enable_per_user_proxy && 
+    //     r.variables.quota_enable_per_user_proxy === '1') {
+    //     userQuotaName = _getQuotaName(r, USER, userId, API_ALL);
+    // }
+    // if (!userQuotaName) {
+    //     switch(r.method) {
+    //         case 'GET':
+    //             if (r.variables.quota_enable_per_user_proxy_read &&
+    //                 r.variables.quota_enable_per_user_proxy_read === '1') {
+    //                 userQuotaName = _getQuotaName(r, USER, userId, API_READ);
+    //             }
+    //             break;
+    //         case 'POST':
+    //         case 'PUT':
+    //         case 'DELETE':
+    //             if (r.variables.quota_enable_per_user_proxy_write &&
+    //                 r.variables.quota_enable_per_user_proxy_write === '1') {
+    //                 userQuotaName = _getQuotaName(r, USER, userId, API_WRITE);
+    //             }
+    //     }
+    //     }
+    // // Set keys of key-val zone to check quota-remaining
+    // if (userQuotaName !== '') {
+    //     r.variables.user_quota_name = userQuotaName;
+    //     r.variables.user_id_quota_name = userId + ':' + userQuotaName;
+    //     r.log('validating quota-remaining: ' + r.variables.user_id_quota_name);
+    // }
+
+    // // Validate if quota remains on a user and proxy
+    // let now = r.variables.time_local;
+    // let msgPrefix = '[quota : ' + userQuotaName + '] ';
+    // if (!r.variables.user_quota_remaining) {
+    //     r.error(msgPrefix + 'not found')
+    //     r.return(401);
+    // } else if (r.variables.quota_remaining > 0) {
+    //     if (r.variables.user_quota_expiry_time > now) {
+    //         r.error(msgPrefix + 'expired');
+    //         // TODO: reset quota limit with new start time unless quota is disabled.
+    //         _setHeadersOut(r, now);
+    //         r.return(403);
+    //         return;
+    //     }
+    //     r.return(204);
+    // } else {
+    //     r.error(msgPrefix + 'exhausted');
+    //     _setHeadersOut(r, now);
+    //     r.return(403);
+    // }
 }
 
 // Quota Limiting Request: Group or User Level Quota Decrement
@@ -238,6 +252,37 @@ function _getQuotaName(r, quotaType, consumerId, apiMethod) {
     // }
     // TODO: Get group/global quota name
     return userQuotaName;
+}
+
+/**
+ * Get quota zone name
+ *
+ * @param r {Request} HTTP request object
+ * @param consumerType {string} consumer type: USR, or CLN for client.ID
+ * @param isQuotaRemaining {boolean} option to generate zone name for quota-remaining
+ * @returns {string} quota zone name to find key/val from key/val store
+ * @private
+ */
+function _getZoneName(r, consumerType, isQuotaRemaining) {
+    let readWrite = ''
+    switch(r.method) {
+        case 'GET':
+            readWrite = 'read';
+            break;
+        case 'POST':
+        case 'PUT':
+        case 'DELETE':
+            readWrite = 'write';
+            break;
+    }
+    const quotaDataType = isQuotaRemaining ? 'remaining_' : 'meta_data_';
+    const zoneName = consumerType.concat(
+        '_quota_', quotaDataType,
+        r.variables.proxy_name, '_',
+        r.variables.proxy_ver, '_', 
+        readWrite
+    );
+    return zoneName
 }
 
 export default {
