@@ -43,6 +43,14 @@ const HOUR_SEC = 3600;
 const DAY_SEC = 86400;
 const MON_SEC = 2678400; // 31 days
 
+/**
+ * Common constants for postfix of zone name
+ */
+const POSTFIX_QUOTA = 'quota';
+const POSTFIX_PERIOD = 'quota_period';
+const POSTFIX_EXP = 'quota_exp';
+const POSTFIX_REMAINING = 'quota_remaining'
+
 
 /**
  * Get a quota policy
@@ -101,26 +109,32 @@ function _getExpiryTime(now, limitPer) {
 }
 
 /**
- * Validate quotas on a user, a group or a global mode
+ * Validate quotas on a user or a client.ID per API key
  *
  * @param r {Request} HTTP request object
  * @returns {int} HTTP response
  */
-function validateQuota(r) {
-    // Generate zone name to find quota meta and status
+async function validateQuota(r) {
+    // Generate zone names to find quota meta and remaining
     let userId = r.variables.x_user_id;
-    let zoneNameQuotaMeta = '';
-    let zoneNameRemaining = '';
-    if (userId !== '') {
-        zoneNameQuotaMeta = _getZoneName(r, USER, false);
-        zoneNameRemaining = _getZoneName(r, USER, true);
-    } else {
-        zoneNameQuotaMeta = _getZoneName(r, CLN, false);
-        zoneNameRemaining = _getZoneName(r, CLN, true);
+    const consumerId = userId !== '' ? userId : '';
+    const consumerType = userId !== '' ? USER : CLN
+    const zoneNameRemaining = _getZoneName(r, consumerType, POSTFIX_REMAINING);
+
+    r.log('##### validate quota for : ' + consumerId);
+    r.log('      1.2 zoneNameRemaining: ' + zoneNameRemaining);
+
+    // Get quota remaining from the key/value store in the quota zone
+    let res;
+    try {
+        res = await get_keyval(r, zoneNameRemaining, consumerId);
+    } catch (e) {
+        r.error('Could not get consumer quota remaining: ' + JSON.stringify(e));
+        r.return(500);
+        return;
     }
-    r.log('##### validate quota: ');
-    r.log('         zoneNameQuotaMeta: ' + zoneNameQuotaMeta);
-    r.log('         zoneNameRemaining: ' + zoneNameRemaining);
+    r.variables.quota_remaining = res;
+    r.log(" quota remaining: " + r.variables.quota_remaining)
 
     // // Get and set user quota name
     // let userQuotaName = '';
@@ -259,11 +273,11 @@ function _getQuotaName(r, quotaType, consumerId, apiMethod) {
  *
  * @param r {Request} HTTP request object
  * @param consumerType {string} consumer type: USR, or CLN for client.ID
- * @param isQuotaRemaining {boolean} option to generate zone name for quota-remaining
+ * @param postFix {string} '' for quota, period, exp, remaining
  * @returns {string} quota zone name to find key/val from key/val store
  * @private
  */
-function _getZoneName(r, consumerType, isQuotaRemaining) {
+function _getZoneName(r, consumerType, postFix) {
     let readWrite = ''
     switch(r.method) {
         case 'GET':
@@ -275,18 +289,80 @@ function _getZoneName(r, consumerType, isQuotaRemaining) {
             readWrite = 'write';
             break;
     }
-    const quotaDataType = isQuotaRemaining ? 'remaining_' : 'meta_data_';
     const zoneName = consumerType.concat(
-        '_quota_', quotaDataType,
+        '_',
         r.variables.proxy_name, '_',
         r.variables.proxy_ver, '_', 
-        readWrite
+        readWrite, '_', postFix
     );
     return zoneName
+}
+
+async function create_keyval(r, zoneName) {
+    let method = r.args.method ? r.args.method : 'POST';
+    let res = await r.subrequest('/api/7/http/keyvals/' + zoneName,
+                                 { method, body: r.requestBody});
+
+    if (res.status >= 300) {
+        r.return(res.status, res.responseBody);
+        return;
+    }
+
+    r.return(200);
+}
+
+// https://github.com/nginx/njs-examples#setting-keyval-using-a-subrequest-http-api-set-keyval
+async function set_keyval(r, zoneName, key, val) {
+    let method = r.args.method ? r.args.method : 'PATCH';
+    let queryParam = '?{'.concat(key, ':', val, '}');
+    let res = await r.subrequest(
+        '/api/7/http/keyvals/' + zoneName + '?{' + queryParam,
+        {method}
+    );
+
+    if (res.status >= 300) {
+        r.return(res.status, res.responseBody);
+        return;
+    }
+    r.return(200);
+}
+
+async function get_keyval(r, zoneName, keyName) {
+    const host = 'http://localhost:8080'
+    const uri = '/api/7/http/keyvals/' + zoneName;
+    const queryParam = '?key=' + keyName;
+    r.log('#### start getting key/val : ' + host+uri+queryParam);
+
+    let resp = await ngx.fetch(host + uri + queryParam);
+    if (!resp.ok) {
+        throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
+    }
+    r.log(' resp status for ' + keyName + ' : ' + resp.ok);
+
+    const data = await resp.json();
+    r.log(' resp json : ' + JSON.stringify(data));
+    r.log(' val : ' + data[keyName]);
+    return data[keyName];
+    // return data[keyName];
+
+    // let method = r.args.method ? r.args.method : 'GET';
+    // let res = await r.subrequest(
+    //     '/api/7/http/keyvals/' + zoneName + '?key=' + keyName,
+    //     { method }
+    // );
+
+    // if (res.status >= 300) {
+    //     r.return(res.status, res.responseBody);
+    //     return;
+    // }
+    // r.return(200, res.responseBody);
 }
 
 export default {
     decreaseQuota,
     setUserQuotaLimit,
+    create_keyval,
+    get_keyval,
+    set_keyval,
     validateQuota
 }
