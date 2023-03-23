@@ -51,67 +51,12 @@ const POSTFIX_PERIOD = 'quota_period';
 const POSTFIX_EXP = 'quota_exp';
 const POSTFIX_REMAINING = 'quota_remaining';
 
-const NGINX_PLUS_HOST_PORT = 'http://localhost:8080';
+const NGINX_PLUS_HOST_PORT = 'http://127.0.0.1:8080';
 const NGINX_PLUS_KEY_VAL_URI = '/api/7/http/keyvals/';
 
-/**
- * Get a quota policy
- *
- * @param r {Request} HTTP request object
- * @returns quota policy {object} quota policy object
- */
-function getQuotaPolicy(r) {
-
-}
 
 /**
- * Set quota limit on a user per proxy in key/val zone
- *
- * @param r {Request} HTTP request object
- * @param quotaType {string} quota type
- * @param userId {string} user id (sub)
- * @param proxyName {string} proxy name
- * @param apiMethod {string} api-method
- * @param paymentMethod {string} quota payment method
- * @param quotaLimit {string} quota limit
- * @returns {string} quota name
- */
-function setUserQuotaLimit(
-    r, quotaType, userId, proxyName, apiMethod, paymentMethod, quotaLimit, limitPer) {
-    // let userQuotaName = ''.concat(
-    //     quotaType, ':', proxyName, ':', apiMethod, ':', paymentMethod
-    // );
-
-    // // Write quota limit on a user per proxy in key/value store
-    // let now = r.variables.time_local;
-    // r.variables.user_id_quota_name = userId + ':' + userQuotaName;
-    // r.variables.user_quota_limit = quotaLimit;
-    // r.variables.user_quota_remaining = quotaLimit;
-    // r.variables.user_quota_start_time = now;
-    // r.variables.user_quota_expiry_time = _getExpiryTime(now, limitPer);
-
-    // TODO: write quota limit on a user per proxy in remote data store
-    r.return(201);
-}
-
-/**
- * Get expiry time from start time once quota limit is set
- *
- * @param r {long} start time
- * @returns {int} HTTP response
- * @private
-*/
-function _getExpiryTime(now, limitPer) {
-    switch(limitPer) {
-        case REQ_HOUR: return now + HOUR_SEC;
-        case REQ_DAY: return now + DAY_SEC;
-        case REQ_MON: return now + MON_SEC; // TODO: calculate secs per each month
-    }
-    return 0;
-}
-
-/**
- * Validate quotas on a user or a client.ID per API key
+ * Validate quotas on a user or a client.ID of an API key at an API proxy level
  *
  * @param r {Request} HTTP request object
  * @returns {int} HTTP response
@@ -124,12 +69,12 @@ async function validateQuota(r) {
     const zoneNameRemaining = _getZoneName(r, consumerType, POSTFIX_REMAINING);
 
     // Get quota remaining from the key/value store in the quota zone
-    r.log('start validating quota-remaining: ' + consumerId + 'in ' + zoneNameRemaining);
+    r.log('validating quota: ' + consumerId + ', ' + zoneNameRemaining);
     let res = 0;
     try {
         res = await _getValWithKey(r, zoneNameRemaining, consumerId);
     } catch (e) {
-        r.error('quota remaining not found: ' + e);
+        r.error('quota not found: ' + e);
         r.return(404);
         return;
     }
@@ -142,21 +87,41 @@ async function validateQuota(r) {
     // Get quota expiry time from the key/value store in the quota zone
 
     // Validate quota-remaining
-    let now = r.variables.time_local;
-    r.log("now : " + now);
+    //let now = r.variables.time_local;
+    // const now = new Date();
+    // const lNow = now.getTime();
+    // const lAfter1h = _getExpiryTime(lNow, REQ_HOUR);
+    // const after1h = new Date(lAfter1h);
+    // let after1M = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()+8);
+    // let lAfter1M = after1M.getTime();
+    // r.log("now       : ".concat(now, '(', lNow, ')'));
+    // r.log("next hour : ".concat(after1h, '(', lAfter1h, ')'));
+    // r.log("next month: ".concat(after1M, '(', lAfter1M, ')'));
+
+    // for (var m = 0; m <= 11; m++) {
+    //     lAfter1M = _getExpiryTime(lAfter1M, REQ_MON);
+    //     after1M = new Date(lAfter1M);
+    //     r.log("next month: ".concat(after1M, '(', lAfter1M, ')'));
+    // }
+
+    // let nowHour = now.getHours();
+    // let later = now.setHours(nowHour + 2);
+    // r.log("later: " + later);
     let msgPrefix = 'quota for ' + consumerId + ': ';
+    const now = new Date().getTime();
     if (r.variables.quota_remaining > 0) {
-    //     if (r.variables.user_quota_expiry_time > now) {
-    //         r.error(msgPrefix + 'expired');
-    //         // TODO: reset quota limit with new start time unless quota is disabled.
-    //         _setHeadersOut(r, now);
-    //         r.return(403);
-    //         return;
-    //     }
+        if (r.variables.quota_exp > now) {
+            r.error(msgPrefix + 'expired');
+            // TODO: send event to reset quota with new expiry time unless quota is disabled.
+            r.variables.quota_after = now-r.variables.quota_exp;
+            r.return(403);
+            return;
+        }
         r.return(204);
     } else {
         r.error(msgPrefix + 'exhausted');
-        _setHeadersOut(r, now);
+        // TODO: send event to reset quota with new expiry time unless quota is disabled.
+        r.variables.quota_after = now-r.variables.quota_exp;
         r.return(403);
     }
 
@@ -229,6 +194,70 @@ async function validateQuota(r) {
     //     _setHeadersOut(r, now);
     //     r.return(403);
     // }
+}
+
+
+
+/**
+ * Get a quota policy
+ *
+ * @param r {Request} HTTP request object
+ * @returns quota policy {object} quota policy object
+ */
+function getQuotaPolicy(r) {
+
+}
+
+/**
+ * Set quota limit on a user per proxy in key/val zone
+ *
+ * @param r {Request} HTTP request object
+ * @param quotaType {string} quota type
+ * @param userId {string} user id (sub)
+ * @param proxyName {string} proxy name
+ * @param apiMethod {string} api-method
+ * @param paymentMethod {string} quota payment method
+ * @param quotaLimit {string} quota limit
+ * @returns {string} quota name
+ */
+function setUserQuotaLimit(
+    r, quotaType, userId, proxyName, apiMethod, paymentMethod, quotaLimit, limitPer) {
+    // let userQuotaName = ''.concat(
+    //     quotaType, ':', proxyName, ':', apiMethod, ':', paymentMethod
+    // );
+
+    // // Write quota limit on a user per proxy in key/value store
+    // let now = r.variables.time_local;
+    // r.variables.user_id_quota_name = userId + ':' + userQuotaName;
+    // r.variables.user_quota_limit = quotaLimit;
+    // r.variables.user_quota_remaining = quotaLimit;
+    // r.variables.user_quota_start_time = now;
+    // r.variables.user_quota_expiry_time = _getExpiryTime(now, limitPer);
+
+    // TODO: write quota limit on a user per proxy in remote data store
+    r.return(201);
+}
+
+/**
+ * Get expiry time from start time once quota limit is set
+ *
+ * @param r {long} start time
+ * @returns {int} HTTP response
+ * @private
+*/
+function _getExpiryTime(now, limitPer) {
+    switch(limitPer) {
+        case REQ_HOUR: return now + HOUR_SEC;
+        case REQ_DAY: return now + DAY_SEC;
+        case REQ_MON: 
+            let after1M = new Date(now);
+            after1M = new Date(
+                after1M.getFullYear(), after1M.getMonth()+1, after1M.getDate()
+            );
+            let lAfter1M = after1M.getTime();
+            return lAfter1M;
+    }
+    return 0;
 }
 
 // Quota Limiting Request: Group or User Level Quota Decrement
