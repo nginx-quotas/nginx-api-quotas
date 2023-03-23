@@ -68,7 +68,7 @@ async function validateQuota(r) {
     const consumerType = userId !== '' ? USER : CLN
     const zoneNameRemaining = _getZoneName(r, consumerType, POSTFIX_REMAINING);
 
-    // Get quota remaining from the key/value store in the quota zone
+    // Get quota remaining value from the key/value store in the quota zone
     r.log('validating quota: ' + consumerId + ', ' + zoneNameRemaining);
     let res = 0;
     try {
@@ -79,121 +79,30 @@ async function validateQuota(r) {
         return;
     }
     let data = res.split(',');
-    r.variables.quota_remaining = data[0].trim();
-    r.variables.quota_exp = data[1].trim();
+    r.variables.quota_remaining = Number(data[0].trim());
+    r.variables.quota_exp = Number(data[1].trim());
     r.log(" quota remaining: " + r.variables.quota_remaining);
     r.log(" quota expiry: " + r.variables.quota_exp);
 
-    // Get quota expiry time from the key/value store in the quota zone
-
-    // Validate quota-remaining
-    //let now = r.variables.time_local;
-    // const now = new Date();
-    // const lNow = now.getTime();
-    // const lAfter1h = _getExpiryTime(lNow, REQ_HOUR);
-    // const after1h = new Date(lAfter1h);
-    // let after1M = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()+8);
-    // let lAfter1M = after1M.getTime();
-    // r.log("now       : ".concat(now, '(', lNow, ')'));
-    // r.log("next hour : ".concat(after1h, '(', lAfter1h, ')'));
-    // r.log("next month: ".concat(after1M, '(', lAfter1M, ')'));
-
-    // for (var m = 0; m <= 11; m++) {
-    //     lAfter1M = _getExpiryTime(lAfter1M, REQ_MON);
-    //     after1M = new Date(lAfter1M);
-    //     r.log("next month: ".concat(after1M, '(', lAfter1M, ')'));
-    // }
-
-    // let nowHour = now.getHours();
-    // let later = now.setHours(nowHour + 2);
-    // r.log("later: " + later);
+    // Check if quota remains
     let msgPrefix = 'quota for ' + consumerId + ': ';
     const now = new Date().getTime();
+    r.log("now: " + now)
     if (r.variables.quota_remaining > 0) {
-        if (r.variables.quota_exp > now) {
+        if (r.variables.quota_exp < now) {
             r.error(msgPrefix + 'expired');
             // TODO: send event to reset quota with new expiry time unless quota is disabled.
-            r.variables.quota_after = now-r.variables.quota_exp;
+            r.variables.quota_after = r.variables.quota_exp - now;
             r.return(403);
             return;
         }
         r.return(204);
-    } else {
-        r.error(msgPrefix + 'exhausted');
-        // TODO: send event to reset quota with new expiry time unless quota is disabled.
-        r.variables.quota_after = now-r.variables.quota_exp;
-        r.return(403);
-    }
-
-    // if (!r.variables.user_quota_remaining) {
-    //     r.error(msgPrefix + 'not found')
-    //     r.return(401);
-    // } else if (r.variables.quota_remaining > 0) {
-    //     if (r.variables.user_quota_expiry_time > now) {
-    //         r.error(msgPrefix + 'expired');
-    //         // TODO: reset quota limit with new start time unless quota is disabled.
-    //         _setHeadersOut(r, now);
-    //         r.return(403);
-    //         return;
-    //     }
-    //     r.return(204);
-    // } else {
-    //     r.error(msgPrefix + 'exhausted');
-    //     _setHeadersOut(r, now);
-    //     r.return(403);
-    // }
-
-
-    // // Get and set user quota name
-    // let userQuotaName = '';
-    // if (r.variables.quota_enable_per_user_proxy && 
-    //     r.variables.quota_enable_per_user_proxy === '1') {
-    //     userQuotaName = _getQuotaName(r, USER, userId, API_ALL);
-    // }
-    // if (!userQuotaName) {
-    //     switch(r.method) {
-    //         case 'GET':
-    //             if (r.variables.quota_enable_per_user_proxy_read &&
-    //                 r.variables.quota_enable_per_user_proxy_read === '1') {
-    //                 userQuotaName = _getQuotaName(r, USER, userId, API_READ);
-    //             }
-    //             break;
-    //         case 'POST':
-    //         case 'PUT':
-    //         case 'DELETE':
-    //             if (r.variables.quota_enable_per_user_proxy_write &&
-    //                 r.variables.quota_enable_per_user_proxy_write === '1') {
-    //                 userQuotaName = _getQuotaName(r, USER, userId, API_WRITE);
-    //             }
-    //     }
-    //     }
-    // // Set keys of key-val zone to check quota-remaining
-    // if (userQuotaName !== '') {
-    //     r.variables.user_quota_name = userQuotaName;
-    //     r.variables.user_id_quota_name = userId + ':' + userQuotaName;
-    //     r.log('validating quota-remaining: ' + r.variables.user_id_quota_name);
-    // }
-
-    // // Validate if quota remains on a user and proxy
-    // let now = r.variables.time_local;
-    // let msgPrefix = '[quota : ' + userQuotaName + '] ';
-    // if (!r.variables.user_quota_remaining) {
-    //     r.error(msgPrefix + 'not found')
-    //     r.return(401);
-    // } else if (r.variables.quota_remaining > 0) {
-    //     if (r.variables.user_quota_expiry_time > now) {
-    //         r.error(msgPrefix + 'expired');
-    //         // TODO: reset quota limit with new start time unless quota is disabled.
-    //         _setHeadersOut(r, now);
-    //         r.return(403);
-    //         return;
-    //     }
-    //     r.return(204);
-    // } else {
-    //     r.error(msgPrefix + 'exhausted');
-    //     _setHeadersOut(r, now);
-    //     r.return(403);
-    // }
+        return;
+    } 
+    r.error(msgPrefix + 'exhausted');
+    // TODO: send event to reset quota with new expiry time unless quota is disabled.
+    r.variables.quota_after = r.variables.quota_exp - now;
+    r.return(403);
 }
 
 
@@ -412,7 +321,6 @@ async function set_keyval(r, zoneName, key, val) {
 async function _getValWithKey(r, zoneName, keyName) {
     const uri = NGINX_PLUS_KEY_VAL_URI + zoneName;
     const queryParam = '?key=' + keyName;
-
     let resp = await ngx.fetch(NGINX_PLUS_HOST_PORT + uri + queryParam);
     if (!resp.ok) {
         throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
