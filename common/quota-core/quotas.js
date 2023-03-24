@@ -15,17 +15,10 @@
  */
 
 /**
- * Common constants for API methods
- */
-const API_READ = 'R';
-const API_WRITE = 'W';
-
-/**
  * Common constants for quota type
  */
 const USER = 'usr';
 const CLN = 'cln'; // for client.id per API key
-const GLOBAL = 'glo';
 
 /**
  * Common constants for quota limit-per (a.k.a. rate)
@@ -105,18 +98,6 @@ async function validateQuota(r) {
     r.return(403);
 }
 
-
-
-/**
- * Get a quota policy
- *
- * @param r {Request} HTTP request object
- * @returns quota policy {object} quota policy object
- */
-function getQuotaPolicy(r) {
-
-}
-
 /**
  * Set quota limit on a user per proxy in key/val zone
  *
@@ -151,11 +132,13 @@ function setUserQuotaLimit(
  * Get expiry time from start time once quota limit is set
  *
  * @param r {long} start time
- * @returns {int} HTTP response
+ * @param r {string} limit per min, hour, day, or month
+ * @returns {long} expiry time
  * @private
 */
 function _getExpiryTime(now, limitPer) {
     switch(limitPer) {
+        case REQ_MIN: return now + MIN_SEC;
         case REQ_HOUR: return now + HOUR_SEC;
         case REQ_DAY: return now + DAY_SEC;
         case REQ_MON: 
@@ -219,34 +202,6 @@ function _setHeadersOut(r, now) {
     r.headersOut['X-User-Quota-Reset'] = r.variables.quota_ext - now;
     // r.headersOut['X-Group-Quota-Limit'] = r.variables.group_quota_limit;
     // r.headersOut['X-Group-Quota-Remaining'] = r.variables.group_quota_remaining;
-}
-
-/**
- * Get quota name
- *
- * @param r {Request} HTTP request object
- * @param quotaType {string} quota type
- * @param consumerId {string} user-id, group-id, or global-id
- * @param apiMethod {string} api-method
- * @returns {string} quota payment method
- * @private
- */
-function _getQuotaName(r, quotaType, consumerId, apiMethod) {
-    let userQuotaName = '';
-    const proxyNameMethod = r.variables.proxy_name + ':' + apiMethod;
-    const consumerProxyMethod = consumerId + ':' + proxyNameMethod;
-    const quotaTypeProxyNameMethod = quotaType + ':' + proxyNameMethod;
-
-    r.variables.user_proxy_method = consumerProxyMethod;
-    if (r.variables.quota_payment_method) {
-        userQuotaName = quotaTypeProxyNameMethod + ':' + r.variables.quota_payment_method;
-    }
-    // if (consumerProxyMethod in r.variables.user_proxy_method) {
-    //     r.variables.user_proxy_method = consumerProxyMethod;
-    //     userQuotaName = quotaTypeProxyNameMethod + ':' + r.variables.quota_payment_method;
-    // }
-    // TODO: Get group/global quota name
-    return userQuotaName;
 }
 
 /**
