@@ -53,35 +53,38 @@ async function validateQuota(r) {
     let userId = r.variables.x_user_id;
     const consumerId = userId !== '' ? userId : '';
     const consumerType = userId !== '' ? USER : CLN
-    const quotaZoneName = _getQuotaZoneName(r, consumerType);
+    r.variables.quota_zone = _getQuotaZoneName(r, consumerType);
 
     // Get quota remaining value from the key/value store in the quota zone
-    r.log('validating quota: ' + consumerId + ', ' + quotaZoneName);
+    r.log('validating quota: ' + consumerId + ', ' + r.variables.quota_zone);
     let res = 0;
     try {
-        res = await _getValWithKey(r, quotaZoneName, consumerId);
+        res = await _getValWithKey(r, r.variables.quota_zone, consumerId);
     } catch (e) {
         r.error('quota not found: ' + e);
         r.return(404);
         return;
     }
-    let data = res.split(',');
-    r.variables.quota = Number(data[0]);
-    r.variables.quota_remaining = Number(data[1]); // no trim to reduct time complexity
-    r.variables.quota_exp = Number(data[2]);
+    const dat = res.split(',');
+    const now = new Date().getTime();
+    r.variables.quota = Number(dat[0]);
+    r.variables.quota_remaining = Number(dat[1]); // no trim to reduct time complexity
+    r.variables.quota_exp = Number(dat[2]);
+    r.variables.quota_period = dat[3];
+    r.variables.quota_after = r.variables.quota_exp - now;
     r.log(" requested-quota: " + r.variables.quota);
     r.log(" quota remaining: " + r.variables.quota_remaining);
-    r.log(" quota expiry: " + r.variables.quota_exp);
+    r.log(" quota expiry   : " + r.variables.quota_exp);
+    r.log(" quota period   : " + r.variables.quota_period);
+    r.log(" quota after    : " + r.variables.quota_after);
 
     // Check if quota remains
     let msgPrefix = 'quota for ' + consumerId + ': ';
-    const now = new Date().getTime();
     r.log("now: " + now)
     if (r.variables.quota_remaining > 0) {
         if (r.variables.quota_exp < now) {
             r.error(msgPrefix + 'expired');
             // TODO: send event to reset quota with new expiry time unless quota is disabled.
-            r.variables.quota_after = r.variables.quota_exp - now;
             r.return(403);
             return;
         }
@@ -90,12 +93,7 @@ async function validateQuota(r) {
     } 
     r.error(msgPrefix + 'exhausted');
     // TODO: send event to reset quota with new expiry time unless quota is disabled.
-    r.variables.quota_after = r.variables.quota_exp - now;
     r.return(403);
-}
-
-function setCheckExpiryTime(r) {
-    
 }
 
 /**
