@@ -84,8 +84,9 @@ async function validateQuota(r) {
     try {
         res = await _getValWithKey(r, r.variables.quota_zone, consumerId);
     } catch (e) {
-        r.error('quota not found: ' + e);
-        r.return(404);
+        r.variables.quota_message = 'quota not found: ' + e;
+        r.error(r.variables.quota_message);
+        r.return(403);
         return;
     }
     const dat = res.split(',');
@@ -106,7 +107,8 @@ async function validateQuota(r) {
     r.log("now: " + now)
     if (r.variables.quota_remaining > 0) {
         if (r.variables.quota_exp < now) {
-            r.error(msgPrefix + 'expired');
+            r.variables.quota_message = msgPrefix + 'expired';
+            r.error(r.variables.quota_message);
             // TODO: send event to reset quota with new expiry time unless quota is disabled.
             r.return(403);
             return;
@@ -114,9 +116,45 @@ async function validateQuota(r) {
         r.return(204);
         return;
     } 
-    r.error(msgPrefix + 'exhausted');
+    r.variables.quota_message = msgPrefix + 'expired';
+    r.error(r.variables.quota_message);
     // TODO: send event to reset quota with new expiry time unless quota is disabled.
     r.return(403);
+}
+
+// Quota Limiting Request: Group or User Level Quota Decrement
+//
+function decreaseQuota(r) {
+    r.log('quota decrement for ' + r.variables.user_id_quota_name);
+
+    // TODO: stand-alone quota decrement
+    if (r.variables.quota_remaining) {
+        r.variables.quota_remaining--;
+    }
+    r.return(204);
+
+    // TODO: remote quota decrement
+    // let uri = '/quotas/decrement/';
+    // let key = r.variables.x_user_id + ':' + r.variables.proxy_name;
+    // if (!r.variables.x_user_id) {
+    //     uri += 'group';
+    // } else {
+    //     uri += 'users/' + key;
+    // }
+    // r.subrequest(uri, function (res) {
+    //     var body = JSON.parse(res.responseBody);
+    //     r.variables.quota_limit = parseInt(body.quota_limit);
+    //     r.variables.quota_remaining = parseInt(body.quota_remaining);
+    //     r.headersOut['X-User-Quota-Limit'] = parseInt(body.quota_limit);
+    //     r.headersOut['X-User-Quota-Remaining'] = parseInt(body.quota_remaining);
+    //     if (res.status == 404) {
+    //         r.return(500)
+    //     } else if (res.status == 200) {
+    //         r.return(200)
+    //     } else { // 429
+    //         r.return(403)
+    //     }
+    // });
 }
 
 /**
@@ -171,41 +209,6 @@ function _getExpiryTime(now, limitPer) {
             return lAfter1M;
     }
     return 0;
-}
-
-// Quota Limiting Request: Group or User Level Quota Decrement
-//
-function decreaseQuota(r) {
-    r.log('quota decrement for ' + r.variables.user_id_quota_name);
-
-    // TODO: stand-alone quota decrement
-    if (r.variables.quota_remaining) {
-        r.variables.quota_remaining--;
-    }
-    r.return(204);
-
-    // TODO: remote quota decrement
-    // let uri = '/quotas/decrement/';
-    // let key = r.variables.x_user_id + ':' + r.variables.proxy_name;
-    // if (!r.variables.x_user_id) {
-    //     uri += 'group';
-    // } else {
-    //     uri += 'users/' + key;
-    // }
-    // r.subrequest(uri, function (res) {
-    //     var body = JSON.parse(res.responseBody);
-    //     r.variables.quota_limit = parseInt(body.quota_limit);
-    //     r.variables.quota_remaining = parseInt(body.quota_remaining);
-    //     r.headersOut['X-User-Quota-Limit'] = parseInt(body.quota_limit);
-    //     r.headersOut['X-User-Quota-Remaining'] = parseInt(body.quota_remaining);
-    //     if (res.status == 404) {
-    //         r.return(500)
-    //     } else if (res.status == 200) {
-    //         r.return(200)
-    //     } else { // 429
-    //         r.return(403)
-    //     }
-    // });
 }
 
 /**
