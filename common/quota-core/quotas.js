@@ -34,16 +34,10 @@ const REQ_MON = 'r/M';
 const MIN_SEC = 60;
 const HOUR_SEC = 3600;
 const DAY_SEC = 86400;
-const MON_SEC = 2678400; // 31 days
 
 /**
  * Common constants for postfix of zone name
  */
-const POSTFIX_QUOTA = 'quota';
-const POSTFIX_PERIOD = 'quota_period';
-const POSTFIX_EXP = 'quota_exp';
-const POSTFIX_REMAINING = 'quota_remaining';
-
 const NGINX_PLUS_HOST_PORT = 'http://127.0.0.1:8080';
 const NGINX_PLUS_KEY_VAL_URI = '/api/7/http/keyvals/';
 
@@ -59,21 +53,23 @@ async function validateQuota(r) {
     let userId = r.variables.x_user_id;
     const consumerId = userId !== '' ? userId : '';
     const consumerType = userId !== '' ? USER : CLN
-    const zoneNameRemaining = _getZoneName(r, consumerType, POSTFIX_REMAINING);
+    const quotaZoneName = _getQuotaZoneName(r, consumerType);
 
     // Get quota remaining value from the key/value store in the quota zone
-    r.log('validating quota: ' + consumerId + ', ' + zoneNameRemaining);
+    r.log('validating quota: ' + consumerId + ', ' + quotaZoneName);
     let res = 0;
     try {
-        res = await _getValWithKey(r, zoneNameRemaining, consumerId);
+        res = await _getValWithKey(r, quotaZoneName, consumerId);
     } catch (e) {
         r.error('quota not found: ' + e);
         r.return(404);
         return;
     }
     let data = res.split(',');
-    r.variables.quota_remaining = Number(data[0].trim());
-    r.variables.quota_exp = Number(data[1].trim());
+    r.variables.quota = Number(data[0]);
+    r.variables.quota_remaining = Number(data[1]); // no trim to reduct time complexity
+    r.variables.quota_exp = Number(data[2]);
+    r.log(" requested-quota: " + r.variables.quota);
     r.log(" quota remaining: " + r.variables.quota_remaining);
     r.log(" quota expiry: " + r.variables.quota_exp);
 
@@ -156,11 +152,10 @@ function _getExpiryTime(now, limitPer) {
 //
 function decreaseQuota(r) {
     r.log('quota decrement for ' + r.variables.user_id_quota_name);
-    
+
     // TODO: stand-alone quota decrement
-    if (r.variables.user_quota_remaining) {
-        r.variables.user_quota_remaining--;
-        r.variables.user_quota_last_update = Date().getTime();
+    if (r.variables.quota_remaining) {
+        r.variables.quota_remaining--;
     }
     r.return(204);
 
@@ -209,11 +204,10 @@ function _setHeadersOut(r, now) {
  *
  * @param r {Request} HTTP request object
  * @param consumerType {string} consumer type: USR, or CLN for client.ID
- * @param postFix {string} '' for quota, period, exp, remaining
  * @returns {string} quota zone name to find key/val from key/val store
  * @private
  */
-function _getZoneName(r, consumerType, postFix) {
+function _getQuotaZoneName(r, consumerType) {
     let readWrite = ''
     switch(r.method) {
         case 'GET':
@@ -225,11 +219,11 @@ function _getZoneName(r, consumerType, postFix) {
             readWrite = 'write';
             break;
     }
-    const zoneName = consumerType.concat(
-        '_',
+    const zoneName = 'quota_'.concat(
+        consumerType, '_',
         r.variables.proxy_name, '_',
         r.variables.proxy_ver, '_', 
-        readWrite, '_', postFix
+        readWrite
     );
     return zoneName
 }
