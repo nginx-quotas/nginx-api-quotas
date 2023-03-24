@@ -131,23 +131,38 @@ async function validateQuota(r) {
     r.return(403);
 }
 
-// Quota Limiting Request: Group or User Level Quota Decrement
-//
+/**
+ * Decrease a quota on a user or a client.ID of an API key at an API proxy level
+ *
+ * @param r {Request} HTTP request object
+ * @returns {int} HTTP response
+ */
 async function decreaseQuota(r) {
-    r.log('quota decrement for ' + r.variables.user_id_quota_name);
+    r.log('start quota decrement for ' + r.variables.quota_consumer_id);
 
     // TODO: stand-alone quota decrement
     if (r.variables.quota_remaining) {
         r.variables.quota_remaining--;
     }
+    const val =  r.variables.quota.toString().concat(
+            ',', r.variables.quota_remaining.toString(),
+            ',', r.variables.quota_exp.toString(),
+            ',', r.variables.quota_period
+    );
+    r.log('value: ' + val);
     try {
-        quotas = await _setValWithKey(r.variables.quota_zone, consumerId);
+        await _setValWithKey(r,
+            r.variables.quota_zone, 
+            r.variables.quota_consumer_id, 
+            val
+        );
     } catch (e) {
-        r.variables.quota_message = 'quota not found: ' + e;
+        r.variables.quota_message = 'quota decrement failed: ' + e;
         r.error(r.variables.quota_message);
         r.return(403);
         return;
     }
+    r.log('finished quota-decrement: ' + r.variables.quota_remaining);
     r.return(204);
 
     // TODO: remote quota decrement
@@ -172,36 +187,6 @@ async function decreaseQuota(r) {
     //         r.return(403)
     //     }
     // });
-}
-
-/**
- * Set quota limit on a user per proxy in key/val zone
- *
- * @param r {Request} HTTP request object
- * @param quotaType {string} quota type
- * @param userId {string} user id (sub)
- * @param proxyName {string} proxy name
- * @param apiMethod {string} api-method
- * @param paymentMethod {string} quota payment method
- * @param quotaLimit {string} quota limit
- * @returns {string} quota name
- */
-function setUserQuotaLimit(
-    r, quotaType, userId, proxyName, apiMethod, paymentMethod, quotaLimit, limitPer) {
-    // let userQuotaName = ''.concat(
-    //     quotaType, ':', proxyName, ':', apiMethod, ':', paymentMethod
-    // );
-
-    // // Write quota limit on a user per proxy in key/value store
-    // let now = r.variables.time_local;
-    // r.variables.user_id_quota_name = userId + ':' + userQuotaName;
-    // r.variables.user_quota_limit = quotaLimit;
-    // r.variables.user_quota_remaining = quotaLimit;
-    // r.variables.user_quota_start_time = now;
-    // r.variables.user_quota_expiry_time = _getExpiryTime(now, limitPer);
-
-    // TODO: write quota limit on a user per proxy in remote data store
-    r.return(201);
 }
 
 /**
@@ -257,37 +242,6 @@ async function create_keyval(r, zoneName) {
 }
 
 /**
- * Set value into key/value store
- * https://github.com/nginx/njs-examples#setting-keyval-using-a-subrequest-http-api-set-keyval
- *
- * @param r {Request} HTTP request object
- * @param zoneName {string} zone name (e.g., quota zone)
- * @param keyName {string} key of k/v store (e.g., sub, client-id per api key)
- * @param val {string} value of k/v store
- * @private
- */
-async function _setValWithKey(r, zoneName, keyName, val) {
-    const uri = NGINX_PLUS_HOST_PORT + NGINX_PLUS_KEY_VAL_URI + zoneName;
-    const reqBody = {keyName:val};
-    let resp = await ngx.fetch(uri,{body: reqBody, method: 'PATCH'});
-    if (!resp.ok) {
-        throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
-    }
-    // let method = r.args.method ? r.args.method : 'PATCH';
-    // let queryParam = '?{'.concat(key, ':', val, '}');
-    // let res = await r.subrequest(
-    //     NGINX_PLUS_KEY_VAL_URI + zoneName + '?{' + queryParam,
-    //     {method}
-    // );
-
-    // if (res.status >= 300) {
-    //     r.return(res.status, res.responseBody);
-    //     return;
-    // }
-    r.return(200);
-}
-
-/**
  * Get value from key/value store
  *
  * @param zoneName {string} zone name (e.g., quota zone)
@@ -304,6 +258,37 @@ async function _getValWithKey(zoneName, keyName) {
     }
     const data = await resp.json();
     return data[keyName];
+}
+
+/**
+ * Set value into key/value store
+ * https://github.com/nginx/njs-examples#setting-keyval-using-a-subrequest-http-api-set-keyval
+ *
+ * @param r {Request} HTTP request object
+ * @param zoneName {string} zone name (e.g., quota zone)
+ * @param keyName {string} key of k/v store (e.g., sub, client-id per api key)
+ * @param val {string} value of k/v store
+ * @private
+ */
+async function _setValWithKey(r, zoneName, keyName, val) {
+    const uri = NGINX_PLUS_HOST_PORT + NGINX_PLUS_KEY_VAL_URI + zoneName;
+    let reqBody = {};
+    reqBody[keyName] = val;
+    let resp = await ngx.fetch(uri,
+        {
+            body: JSON.stringify(reqBody), 
+            method: 'PATCH'
+        }
+    );
+    if (!resp.ok) {
+        const data = await resp.text();
+        const errMessage = 'Patch failed for the key of '.concat(
+            keyName, ' in the ', zoneName,
+            'status: ', resp.status,
+            'response: ', data
+        )
+        throw errMessage;
+    }
 }
 
 export default {
