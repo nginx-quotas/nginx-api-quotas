@@ -60,13 +60,11 @@ function quotaConsumerId(r) {
  */
 function quotaZoneName(r) {
     const consumerType = r.variables.jwt_claim_sub !== '' ? USER : CLN
-    let readWrite = ''
+    let readWrite = 'read';
     switch(r.method) {
-        case 'GET':
-            readWrite = 'read';
-            break;
         case 'POST':
         case 'PUT':
+        case 'PATCH':
         case 'DELETE':
             readWrite = 'write';
             break;
@@ -106,11 +104,6 @@ async function validateQuota(r) {
     r.variables.quota_exp = Number(dat[2]);
     r.variables.quota_period = dat[3];
     r.variables.quota_after = r.variables.quota_exp - now;
-    r.log(" requested-quota: " + r.variables.quota);
-    r.log(" quota remaining: " + r.variables.quota_remaining);
-    r.log(" quota expiry   : " + r.variables.quota_exp);
-    r.log(" quota period   : " + r.variables.quota_period);
-    r.log(" quota after    : " + r.variables.quota_after);
 
     // Check if quota remains, or if quota is expired.
     let msgPrefix = 'quota for ' + consumerId + ': ';
@@ -140,7 +133,7 @@ async function validateQuota(r) {
 async function decreaseQuota(r) {
     r.log('start quota decrement for ' + r.variables.quota_consumer_id);
 
-    // TODO: stand-alone quota decrement
+    // stand-alone quota decrement
     if (r.variables.quota_remaining) {
         r.variables.quota_remaining--;
     }
@@ -149,9 +142,8 @@ async function decreaseQuota(r) {
             ',', r.variables.quota_exp.toString(),
             ',', r.variables.quota_period
     );
-    r.log('value: ' + val);
     try {
-        await _setValWithKey(r,
+        await _setValWithKey(
             r.variables.quota_zone, 
             r.variables.quota_consumer_id, 
             val
@@ -190,14 +182,14 @@ async function decreaseQuota(r) {
 }
 
 /**
- * Get expiry time from start time once quota limit is set
+ * Get new expiry time when quota is either created or reset.
  *
- * @param r {long} start time
  * @param r {string} limit per min, hour, day, or month
  * @returns {long} expiry time
  * @private
 */
-function _getExpiryTime(now, limitPer) {
+function _getNewExpiryTime(limitPer) {
+    const now = new Date().getTime();
     switch(limitPer) {
         case REQ_MIN: return now + MIN_SEC;
         case REQ_HOUR: return now + HOUR_SEC;
@@ -242,25 +234,6 @@ async function create_keyval(r, zoneName) {
 }
 
 /**
- * Get value from key/value store
- *
- * @param zoneName {string} zone name (e.g., quota zone)
- * @param keyName {string} key of k/v store (e.g., sub, client-id per api key)
- * @returns value {string} value of k/v store
- * @private
- */
-async function _getValWithKey(zoneName, keyName) {
-    const uri = NGINX_PLUS_KEY_VAL_URI + zoneName;
-    const queryParam = '?key=' + keyName;
-    let resp = await ngx.fetch(NGINX_PLUS_HOST_PORT + uri + queryParam);
-    if (!resp.ok) {
-        throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
-    }
-    const data = await resp.json();
-    return data[keyName];
-}
-
-/**
  * Set value into key/value store
  * https://github.com/nginx/njs-examples#setting-keyval-using-a-subrequest-http-api-set-keyval
  *
@@ -270,7 +243,7 @@ async function _getValWithKey(zoneName, keyName) {
  * @param val {string} value of k/v store
  * @private
  */
-async function _setValWithKey(r, zoneName, keyName, val) {
+async function _setValWithKey(zoneName, keyName, val) {
     const uri = NGINX_PLUS_HOST_PORT + NGINX_PLUS_KEY_VAL_URI + zoneName;
     let reqBody = {};
     reqBody[keyName] = val;
@@ -291,11 +264,29 @@ async function _setValWithKey(r, zoneName, keyName, val) {
     }
 }
 
+/**
+ * Get value from key/value store
+ *
+ * @param zoneName {string} zone name (e.g., quota zone)
+ * @param keyName {string} key of k/v store (e.g., sub, client-id per api key)
+ * @returns value {string} value of k/v store
+ * @private
+ */
+async function _getValWithKey(zoneName, keyName) {
+    const uri = NGINX_PLUS_KEY_VAL_URI + zoneName;
+    const queryParam = '?key=' + keyName;
+    let resp = await ngx.fetch(NGINX_PLUS_HOST_PORT + uri + queryParam);
+    if (!resp.ok) {
+        throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
+    }
+    const data = await resp.json();
+    return data[keyName];
+}
+
 export default {
     decreaseQuota,
     quotaConsumerId,
     quotaZoneName,
-    setUserQuotaLimit,
     create_keyval,
     validateQuota
 }
