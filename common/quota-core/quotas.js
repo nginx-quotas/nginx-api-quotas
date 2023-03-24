@@ -43,19 +43,42 @@ const NGINX_PLUS_KEY_VAL_URI = '/api/7/http/keyvals/';
 
 
 /**
+ * Get quota zone name
+ *
+ * @param r {Request} HTTP request object
+ * @returns {string} quota zone name to find key/val from key/val store
+ */
+function quotaZoneName(r) {
+    const consumerType = r.variables.x_user_id !== '' ? USER : CLN
+    let readWrite = ''
+    switch(r.method) {
+        case 'GET':
+            readWrite = 'read';
+            break;
+        case 'POST':
+        case 'PUT':
+        case 'DELETE':
+            readWrite = 'write';
+            break;
+    }
+    const zoneName = 'quota_'.concat(
+        consumerType, '_',
+        r.variables.proxy_name, '_',
+        r.variables.proxy_ver, '_', 
+        readWrite
+    );
+    return zoneName
+}
+
+/**
  * Validate quotas on a user or a client.ID of an API key at an API proxy level
  *
  * @param r {Request} HTTP request object
  * @returns {int} HTTP response
  */
 async function validateQuota(r) {
-    // Generate zone names to find quota meta and remaining
-    let userId = r.variables.x_user_id;
-    const consumerId = userId !== '' ? userId : '';
-    const consumerType = userId !== '' ? USER : CLN
-    r.variables.quota_zone = _getQuotaZoneName(r, consumerType);
-
     // Get quota remaining value from the key/value store in the quota zone
+    const consumerId = r.variables.x_user_id ? r.variables.x_user_id : '';
     r.log('validating quota: ' + consumerId + ', ' + r.variables.quota_zone);
     let res = 0;
     try {
@@ -201,35 +224,6 @@ function _setHeadersOut(r, now) {
     // r.headersOut['X-Group-Quota-Remaining'] = r.variables.group_quota_remaining;
 }
 
-/**
- * Get quota zone name
- *
- * @param r {Request} HTTP request object
- * @param consumerType {string} consumer type: USR, or CLN for client.ID
- * @returns {string} quota zone name to find key/val from key/val store
- * @private
- */
-function _getQuotaZoneName(r, consumerType) {
-    let readWrite = ''
-    switch(r.method) {
-        case 'GET':
-            readWrite = 'read';
-            break;
-        case 'POST':
-        case 'PUT':
-        case 'DELETE':
-            readWrite = 'write';
-            break;
-    }
-    const zoneName = 'quota_'.concat(
-        consumerType, '_',
-        r.variables.proxy_name, '_',
-        r.variables.proxy_ver, '_', 
-        readWrite
-    );
-    return zoneName
-}
-
 async function create_keyval(r, zoneName) {
     let method = r.args.method ? r.args.method : 'POST';
     let res = await r.subrequest(NGINX_PLUS_KEY_VAL_URI + zoneName,
@@ -282,6 +276,7 @@ async function _getValWithKey(r, zoneName, keyName) {
 
 export default {
     decreaseQuota,
+    quotaZoneName,
     setUserQuotaLimit,
     create_keyval,
     set_keyval,
