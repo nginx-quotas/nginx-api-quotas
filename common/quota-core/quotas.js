@@ -43,13 +43,23 @@ const NGINX_PLUS_KEY_VAL_URI = '/api/7/http/keyvals/';
 
 
 /**
+ * Get quota consumer Id
+ *
+ * @param r {Request} HTTP request object
+ * @returns {string} consumer Id (sub or client-id per api-key)
+ */
+function quotaConsumerId(r) {
+    return r.variables.jwt_claim_sub ? r.variables.jwt_claim_sub : "";
+}
+
+/**
  * Get quota zone name
  *
  * @param r {Request} HTTP request object
  * @returns {string} quota zone name to find key/val from key/val store
  */
 function quotaZoneName(r) {
-    const consumerType = r.variables.x_user_id !== '' ? USER : CLN
+    const consumerType = r.variables.jwt_claim_sub !== '' ? USER : CLN
     let readWrite = ''
     switch(r.method) {
         case 'GET':
@@ -78,21 +88,21 @@ function quotaZoneName(r) {
  */
 async function validateQuota(r) {
     // Get quota remaining value from the key/value store in the quota zone
-    const consumerId = r.variables.x_user_id ? r.variables.x_user_id : '';
+    const consumerId = r.variables.jwt_claim_sub ? r.variables.jwt_claim_sub : '';
     r.log('validating quota: ' + consumerId + ', ' + r.variables.quota_zone);
-    let res = 0;
+    let quotas = 0;
     try {
-        res = await _getValWithKey(r, r.variables.quota_zone, consumerId);
+        quotas = await _getValWithKey(r.variables.quota_zone, consumerId);
     } catch (e) {
         r.variables.quota_message = 'quota not found: ' + e;
         r.error(r.variables.quota_message);
         r.return(403);
         return;
     }
-    const dat = res.split(',');
+    const dat = quotas.split(',');
     const now = new Date().getTime();
     r.variables.quota = Number(dat[0]);
-    r.variables.quota_remaining = Number(dat[1]); // no trim to reduct time complexity
+    r.variables.quota_remaining = Number(dat[1]); // no trim to reduce time complexity
     r.variables.quota_exp = Number(dat[2]);
     r.variables.quota_period = dat[3];
     r.variables.quota_after = r.variables.quota_exp - now;
@@ -102,9 +112,8 @@ async function validateQuota(r) {
     r.log(" quota period   : " + r.variables.quota_period);
     r.log(" quota after    : " + r.variables.quota_after);
 
-    // Check if quota remains
+    // Check if quota remains, or if quota is expired.
     let msgPrefix = 'quota for ' + consumerId + ': ';
-    r.log("now: " + now)
     if (r.variables.quota_remaining > 0) {
         if (r.variables.quota_exp < now) {
             r.variables.quota_message = msgPrefix + 'expired';
@@ -124,19 +133,27 @@ async function validateQuota(r) {
 
 // Quota Limiting Request: Group or User Level Quota Decrement
 //
-function decreaseQuota(r) {
+async function decreaseQuota(r) {
     r.log('quota decrement for ' + r.variables.user_id_quota_name);
 
     // TODO: stand-alone quota decrement
     if (r.variables.quota_remaining) {
         r.variables.quota_remaining--;
     }
+    try {
+        quotas = await _setValWithKey(r.variables.quota_zone, consumerId);
+    } catch (e) {
+        r.variables.quota_message = 'quota not found: ' + e;
+        r.error(r.variables.quota_message);
+        r.return(403);
+        return;
+    }
     r.return(204);
 
     // TODO: remote quota decrement
     // let uri = '/quotas/decrement/';
-    // let key = r.variables.x_user_id + ':' + r.variables.proxy_name;
-    // if (!r.variables.x_user_id) {
+    // let key = r.variables.jwt_claim_sub + ':' + r.variables.proxy_name;
+    // if (!r.variables.jwt_claim_sub) {
     //     uri += 'group';
     // } else {
     //     uri += 'users/' + key;
@@ -236,37 +253,49 @@ async function create_keyval(r, zoneName) {
         r.return(res.status, res.responseBody);
         return;
     }
-
     r.return(200);
 }
 
-// https://github.com/nginx/njs-examples#setting-keyval-using-a-subrequest-http-api-set-keyval
-async function set_keyval(r, zoneName, key, val) {
-    let method = r.args.method ? r.args.method : 'PATCH';
-    let queryParam = '?{'.concat(key, ':', val, '}');
-    let res = await r.subrequest(
-        NGINX_PLUS_KEY_VAL_URI + zoneName + '?{' + queryParam,
-        {method}
-    );
-
-    if (res.status >= 300) {
-        r.return(res.status, res.responseBody);
-        return;
+/**
+ * Set value into key/value store
+ * https://github.com/nginx/njs-examples#setting-keyval-using-a-subrequest-http-api-set-keyval
+ *
+ * @param r {Request} HTTP request object
+ * @param zoneName {string} zone name (e.g., quota zone)
+ * @param keyName {string} key of k/v store (e.g., sub, client-id per api key)
+ * @param val {string} value of k/v store
+ * @private
+ */
+async function _setValWithKey(r, zoneName, keyName, val) {
+    const uri = NGINX_PLUS_HOST_PORT + NGINX_PLUS_KEY_VAL_URI + zoneName;
+    const reqBody = {keyName:val};
+    let resp = await ngx.fetch(uri,{body: reqBody, method: 'PATCH'});
+    if (!resp.ok) {
+        throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
     }
+    // let method = r.args.method ? r.args.method : 'PATCH';
+    // let queryParam = '?{'.concat(key, ':', val, '}');
+    // let res = await r.subrequest(
+    //     NGINX_PLUS_KEY_VAL_URI + zoneName + '?{' + queryParam,
+    //     {method}
+    // );
+
+    // if (res.status >= 300) {
+    //     r.return(res.status, res.responseBody);
+    //     return;
+    // }
     r.return(200);
 }
 
 /**
  * Get value from key/value store
  *
- * @param r {Request} HTTP request object
  * @param zoneName {string} zone name (e.g., quota zone)
  * @param keyName {string} key of k/v store (e.g., sub, client-id per api key)
- * @param apiMethod {string} api-method
  * @returns value {string} value of k/v store
  * @private
  */
-async function _getValWithKey(r, zoneName, keyName) {
+async function _getValWithKey(zoneName, keyName) {
     const uri = NGINX_PLUS_KEY_VAL_URI + zoneName;
     const queryParam = '?key=' + keyName;
     let resp = await ngx.fetch(NGINX_PLUS_HOST_PORT + uri + queryParam);
@@ -279,9 +308,9 @@ async function _getValWithKey(r, zoneName, keyName) {
 
 export default {
     decreaseQuota,
+    quotaConsumerId,
     quotaZoneName,
     setUserQuotaLimit,
     create_keyval,
-    set_keyval,
     validateQuota
 }
