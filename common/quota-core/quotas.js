@@ -94,6 +94,10 @@ async function validateQuota(r) {
     r.return(403);
 }
 
+function setCheckExpiryTime(r) {
+    
+}
+
 /**
  * Set quota limit on a user per proxy in key/val zone
  *
