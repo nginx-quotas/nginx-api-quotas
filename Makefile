@@ -16,8 +16,12 @@ export INTEGRATION_TEST_PATH
 start:
 	docker-compose up -d
 
-start-01:
+# quota on a single API gateway
+start-01: 
 	docker-compose -f docker-compose-example-01.yml up -d
+
+down-01:
+	docker-compose -f docker-compose-example-01.yml down
 
 ps:
 	docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Ports}}\t{{.Names}}"
@@ -28,8 +32,6 @@ watch:
 down:
 	docker-compose down
 
-down-01:
-	docker-compose -f docker-compose-example-01.yml down
 
 clean: 
 	docker kill $$(docker ps -q) 2> /dev/null || true
