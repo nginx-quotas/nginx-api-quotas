@@ -41,7 +41,6 @@ const DAY_SEC = 86400;
 const NGINX_PLUS_HOST_PORT = 'http://127.0.0.1:8080';
 const NGINX_PLUS_KEY_VAL_URI = '/api/7/http/keyvals/';
 
-
 /**
  * Get quota consumer Id
  *

@@ -5,7 +5,7 @@ services:
     container_name: nginx-standalone-quota
     build:
       context: ./
-      dockerfile: ./examples/01-standalone-quota/docker/Dockerfile
+      dockerfile: ./examples/01-quota-on-single-apigw/docker/Dockerfile
     image: nginx-standalone-quota
     ports:
       - 80:80
@@ -19,7 +19,7 @@ services:
         source: ./common/quota-core/
         target: /etc/nginx/quota/
       - type: bind
-        source: ./examples/01-standalone-quota/service/etc/nginx/conf.d/
+        source: ./examples/01-quota-on-single-apigw/service/etc/nginx/conf.d/
         target: /etc/nginx/conf.d/
       - type: bind
         source: ./common/quota-simulator/
