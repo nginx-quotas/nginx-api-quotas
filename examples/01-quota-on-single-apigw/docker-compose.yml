@@ -4,7 +4,7 @@ services:
   nginx-quota-on-single-apigw:
     container_name: nginx-quota-on-single-apigw
     build:
-      context: ./
+      context: ./../../
       dockerfile: ./examples/01-quota-on-single-apigw/docker/Dockerfile
     image: nginx-quota-on-single-apigw
     ports:
@@ -13,14 +13,14 @@ services:
       - 8080:8080
     volumes:
       - type: bind
-        source: ./common/etc/nginx/oidc/
+        source: ./../../common/etc/nginx/oidc/
         target: /etc/nginx/oidc/
       - type: bind
-        source: ./common/quota-core/
+        source: ./../../common/quota-core/
         target: /etc/nginx/quota/
       - type: bind
-        source: ./examples/01-quota-on-single-apigw/service/etc/nginx/conf.d/
+        source: ./service/etc/nginx/conf.d/
         target: /etc/nginx/conf.d/
       - type: bind
-        source: ./common/quota-simulator/
+        source: ./../../common/quota-simulator/
         target: /usr/share/nginx/quota/
