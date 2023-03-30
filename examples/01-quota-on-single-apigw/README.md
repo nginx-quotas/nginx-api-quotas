@@ -1,1 +1,1 @@
-# Standalone NGINX API Quotas Solution Example
+# NGINX API Quota on a Single API Gateway
