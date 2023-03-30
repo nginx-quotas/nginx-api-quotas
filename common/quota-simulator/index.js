@@ -259,7 +259,10 @@ var doAPIRequest = function (
         return MSG_DELETED_JSON;
       } else if (response.status == 429) {
         showMessage(MSG_TOOMANYREQ)
-        return response.statusText; //MSG_TOOMANYREQ_JSON;
+        return response.json();
+      } else if (response.status == 404) {
+        showMessage(MSG_NOTFOUND)
+        return response.json();
       }
       throw new Error(response.error)
     })
@@ -268,7 +271,7 @@ var doAPIRequest = function (
       if (status != 204) {
         showMessageDetail(JSON.stringify(data))
       }
-        if (uri == '/userinfo') {
+      if (uri == '/userinfo') {
         initButtonsAfterSignIn()
         if (data.username) {
           userName = data.username;

@@ -86,16 +86,16 @@ function quotaZoneName(r) {
 async function validateQuota(r) {
     // Get quota remaining value from the key/value store in the quota zone
     const consumerId = r.variables.jwt_claim_sub ? r.variables.jwt_claim_sub : '';
-    let resBody = {'message': ''};
+    r.variables.quota_message = '';
     r.log('validating quota: ' + consumerId + ', ' + r.variables.quota_zone);
     let quotas = 0;
     try {
         quotas = await _getValWithKey(r.variables.quota_zone, consumerId);
     } catch (e) {
+        r.variables.quota_status_code = 404;
         r.variables.quota_message = 'quota not found: ' + e;
-        resBody['message'] = r.variables.quota_message;
         r.error(r.variables.quota_message);
-        r.return(403, JSON.stringify(resBody));
+        r.return(403);
         return;
     }
     const dat = quotas.split(',');
@@ -108,6 +108,7 @@ async function validateQuota(r) {
 
     // Check if quota remains, or if quota is expired.
     let msgPrefix = 'quota for ' + consumerId + ': ';
+    r.variables.quota_status_code = 429;
     if (r.variables.quota_remaining > 0) {
         if (r.variables.quota_exp < now) {
             r.variables.quota_message = msgPrefix + 'expired';
@@ -116,6 +117,7 @@ async function validateQuota(r) {
             r.return(403);
             return;
         }
+        r.variables.quota_status_code = 204;
         r.return(204);
         return;
     } 
@@ -150,11 +152,14 @@ async function decreaseQuota(r) {
             val
         );
     } catch (e) {
+        r.variables.quota_status_code = 500;
         r.variables.quota_message = 'quota decrement failed: ' + e;
         r.error(r.variables.quota_message);
+
         r.return(403);
         return;
     }
+    r.variables.quota_status_code = 204;
     r.log('finished quota-decrement: ' + r.variables.quota_remaining);
     r.return(204);
 
@@ -284,8 +289,23 @@ async function _getValWithKey(zoneName, keyName) {
     return data[keyName];
 }
 
+/**
+ * Return quota error response
+ *
+ * @param r {Request} HTTP request object
+ * @returns {int} HTTP response
+ * @private
+ */
+function error(r) {
+    r.return(
+        parseInt(r.variables.quota_status_code), 
+        '{"message": "' + r.variables.quota_message + '"}\n'
+    )
+}
+
 export default {
     decreaseQuota,
+    error,
     quotaConsumerId,
     quotaZoneName,
     create_keyval,
