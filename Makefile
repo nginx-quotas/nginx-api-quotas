@@ -18,10 +18,10 @@ start:
 
 # quota on a single API gateway
 start-01: 
-	docker-compose -f docker-compose-example-01.yml up -d
+	docker-compose -f ./examples/01-quota-on-single-apigw/docker-compose.yml up -d
 
 down-01:
-	docker-compose -f docker-compose-example-01.yml down
+	docker-compose -f ./examples/01-quota-on-single-apigw/docker-compose.yml down
 
 ps:
 	docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Ports}}\t{{.Names}}"
