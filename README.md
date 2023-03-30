@@ -107,5 +107,10 @@ This estimate focuses on API gateway for the quota validation and decrement. Fin
 
 ![](./docs/img/capacity-estimation-summary.png)
 
+
+## Examples
+- API quota per user on a single API gateway
+
+
 ## Misc.
 - [Additional Considerations](./docs/nginx-quota-limit.md)

@@ -259,7 +259,7 @@ var doAPIRequest = function (
         return MSG_DELETED_JSON;
       } else if (response.status == 429) {
         showMessage(MSG_TOOMANYREQ)
-        return MSG_TOOMANYREQ_JSON;
+        return response.statusText; //MSG_TOOMANYREQ_JSON;
       }
       throw new Error(response.error)
     })
