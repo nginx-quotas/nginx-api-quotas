@@ -121,7 +121,7 @@ async function validateQuota(r) {
         r.return(204);
         return;
     } 
-    r.variables.quota_message = msgPrefix + 'expired';
+    r.variables.quota_message = msgPrefix + 'exhausted';
     r.error(r.variables.quota_message);
     // TODO: send event to reset quota with new expiry time unless quota is disabled.
     r.return(403);
