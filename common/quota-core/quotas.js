@@ -86,14 +86,16 @@ function quotaZoneName(r) {
 async function validateQuota(r) {
     // Get quota remaining value from the key/value store in the quota zone
     const consumerId = r.variables.jwt_claim_sub ? r.variables.jwt_claim_sub : '';
+    let resBody = {'message': ''};
     r.log('validating quota: ' + consumerId + ', ' + r.variables.quota_zone);
     let quotas = 0;
     try {
         quotas = await _getValWithKey(r.variables.quota_zone, consumerId);
     } catch (e) {
         r.variables.quota_message = 'quota not found: ' + e;
+        resBody['message'] = r.variables.quota_message;
         r.error(r.variables.quota_message);
-        r.return(403);
+        r.return(403, JSON.stringify(resBody));
         return;
     }
     const dat = quotas.split(',');

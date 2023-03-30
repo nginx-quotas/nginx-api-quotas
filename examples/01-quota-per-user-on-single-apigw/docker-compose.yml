@@ -5,7 +5,7 @@ services:
     container_name: nginx-quota-on-single-apigw
     build:
       context: ./../../
-      dockerfile: ./examples/01-quota-on-single-apigw/docker/Dockerfile
+      dockerfile: ./examples/01-quota-per-user-on-single-apigw/docker/Dockerfile
     image: nginx-quota-on-single-apigw
     ports:
       - 80:80
