@@ -104,7 +104,7 @@ async function validateQuota(r) {
     r.variables.quota_remaining = Number(dat[1]); // no trim to reduce time complexity
     r.variables.quota_exp = Number(dat[2]);
     r.variables.quota_period = dat[3];
-    r.variables.quota_after = r.variables.quota_exp - now;
+    r.variables.quota_reset = r.variables.quota_exp - now;
 
     // Check if quota remains, or if quota is expired.
     let msgPrefix = 'quota for ' + consumerId + ': ';
@@ -212,19 +212,15 @@ function _getNewExpiryTime(limitPer) {
 }
 
 /**
- * Get quota name
+ * Set quota information in the response header
  *
  * @param r {Request} HTTP request object
- * @returns {string} quota payment method
- * @private
  */
-function _setHeadersOut(r, now) {
-    // r.headersOut['X-User-Quota-Policy'] = r.variables.user_id_quota_name;
-    r.headersOut['X-User-Quota'] = r.variables.quota;
-    r.headersOut['X-User-Quota-Remaining'] = r.variables.quota_remaining;
-    r.headersOut['X-User-Quota-Reset'] = r.variables.quota_ext - now;
-    // r.headersOut['X-Group-Quota-Limit'] = r.variables.group_quota_limit;
-    // r.headersOut['X-Group-Quota-Remaining'] = r.variables.group_quota_remaining;
+function setQuotaHeader(r) {
+    r.headersOut['X-Quota-Consumer-Id'] = r.variables.quota_consumer_id;
+    r.headersOut['X-Quota'] = r.variables.quota + '/' + r.variables.quota_period;
+    r.headersOut['X-Quota-Remaining'] = r.variables.quota_remaining;
+    r.headersOut['X-Quota-Reset'] = r.variables.quota_reset;
 }
 
 async function create_keyval(r, zoneName) {
@@ -309,5 +305,6 @@ export default {
     quotaConsumerId,
     quotaZoneName,
     create_keyval,
+    setQuotaHeader,
     validateQuota
 }
