@@ -18,10 +18,17 @@ start:
 
 # quota on a single API gateway
 start-01: 
-	docker-compose -f ./examples/01-quota-per-user-on-single-apigw/docker-compose.yml up -d
+	docker-compose -f ./examples/01-quota-w-nginx-kv-store-on-single-apigw/docker-compose.yml up -d
 
 down-01:
-	docker-compose -f ./examples/01-quota-per-user-on-single-apigw/docker-compose.yml down
+	docker-compose -f ./examples/01-quota-w-nginx-kv-store-on-single-apigw/docker-compose.yml down
+
+# quota on multiple API gateways
+start-02: 
+	docker-compose -f ./examples/02-quota-w-nginx-kv-store-on-multi-apigws/docker-compose.yml up -d
+
+down-02:
+	docker-compose -f ./examples/02-quota-w-nginx-kv-store-on-multi-apigws/docker-compose.yml down
 
 ps:
 	docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Ports}}\t{{.Names}}"

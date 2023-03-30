@@ -1,0 +1,26 @@
+version: '2.2'
+
+services:
+  quota-w-nginx-kv-store-on-single-apigw:
+    container_name: quota-w-nginx-kv-store-on-single-apigw
+    build:
+      context: ./../../
+      dockerfile: ./examples/01-quota-w-nginx-kv-store-on-single-apigw/docker/Dockerfile
+    image: quota-w-nginx-kv-store-on-single-apigw
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - type: bind
+        source: ./../../common/etc/nginx/oidc/
+        target: /etc/nginx/oidc/
+      - type: bind
+        source: ./../../common/quota-core/
+        target: /etc/nginx/quota/
+      - type: bind
+        source: ./service/etc/nginx/conf.d/
+        target: /etc/nginx/conf.d/
+      - type: bind
+        source: ./../../common/quota-simulator/
+        target: /usr/share/nginx/quota/

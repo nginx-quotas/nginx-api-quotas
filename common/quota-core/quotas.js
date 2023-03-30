@@ -287,7 +287,7 @@ async function _getValWithKey(zoneName, keyName) {
     const queryParam = '?key=' + keyName;
     let resp = await ngx.fetch(NGINX_PLUS_HOST_PORT + uri + queryParam);
     if (!resp.ok) {
-        throw 'No data for the key of ' + keyName + 'in the ' + zoneName;
+        throw 'No data for the key of ' + keyName + ' in the ' + zoneName;
     }
     const data = await resp.json();
     return data[keyName];
