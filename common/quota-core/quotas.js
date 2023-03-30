@@ -217,10 +217,18 @@ function _getNewExpiryTime(limitPer) {
  * @param r {Request} HTTP request object
  */
 function setQuotaHeader(r) {
-    r.headersOut['X-Quota-Consumer-Id'] = r.variables.quota_consumer_id;
-    r.headersOut['X-Quota'] = r.variables.quota + '/' + r.variables.quota_period;
-    r.headersOut['X-Quota-Remaining'] = r.variables.quota_remaining;
-    r.headersOut['X-Quota-Reset'] = r.variables.quota_reset;
+    r.headersOut['X-Quota-Consumer-Id'] = r.variables.quota_consumer_id ?
+                                          r.variables.quota_consumer_id : '';
+    r.headersOut['X-Quota'] = r.variables.quota ?
+                              r.variables.quota.concat(
+                                '/', 
+                                r.variables.quota_period ? 
+                                r.variables.quota_period : ''
+                              ): '';
+    r.headersOut['X-Quota-Remaining'] = r.variables.quota_remaining ? 
+                                        r.variables.quota_remaining : '';
+    r.headersOut['X-Quota-Reset'] = r.variables.quota_reset ? 
+                                    r.variables.quota_reset : '';
 }
 
 async function create_keyval(r, zoneName) {
