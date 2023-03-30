@@ -1,12 +1,12 @@
 version: '2.2'
 
 services:
-  nginx-standalone-quota:
-    container_name: nginx-standalone-quota
+  nginx-quota-on-single-apigw:
+    container_name: nginx-quota-on-single-apigw
     build:
       context: ./
       dockerfile: ./examples/01-quota-on-single-apigw/docker/Dockerfile
-    image: nginx-standalone-quota
+    image: nginx-quota-on-single-apigw
     ports:
       - 80:80
       - 443:443
