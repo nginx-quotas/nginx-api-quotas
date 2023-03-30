@@ -112,7 +112,7 @@ COPY  common/etc/nginx/status/    /etc/nginx/status/
 COPY  common/quota-core/          /etc/nginx/quota/
 COPY  common/quota-simulator/     /usr/share/nginx/quota/
 
-COPY  examples/01-quota-on-single-apigw/service/etc/nginx/conf.d/   /etc/nginx/conf.d/
+COPY  examples/01-quota-w-nginx-kv-store-on-single-apigw/service/etc/nginx/conf.d/   /etc/nginx/conf.d/
 
 EXPOSE 80
 
