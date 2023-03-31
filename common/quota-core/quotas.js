@@ -52,7 +52,7 @@ function quotaConsumerId(r) {
 }
 
 /**
- * Get quota zone name
+ * Get a name of quota zone
  *
  * @param r {Request} HTTP request object
  * @returns {string} quota zone name to find key/val from key/val store
